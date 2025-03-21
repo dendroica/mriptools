@@ -31,3 +31,6 @@ areas <- c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)")
 modes <- c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE")
 
 mrip(styr, endyr, y_prelim, species, waves, areas, modes, state)
+
+#TO DO: IMPORT EXTERNAL FUNCTIONS BETTER WITH ::
+#ADD Imports: to DESCRIPTION accordingly

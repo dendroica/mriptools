@@ -3,15 +3,14 @@ library(outliers)
 library(readr)
 library(ggplot2)
 library(tidyr)
-library(vroom)
-library(archive)
-library(RCurl)
-library(stringr)
-library(dplyr)
+#library(archive)
+#library(RCurl)
+#library(stringr)
+library(dplyr) #Depends
 
 readcatch <- function(x, xfile, state) {
-  if(length(grep("z", x))) {filen <- archive_read(x, file=xfile)} else {filen <- x}
-  C.tmp <- read_csv(filen, na = "", 
+  if(length(grep("z", x))) {filen <- archive::archive_read(x, file=xfile)} else {filen <- x}
+  C.tmp <- readr::read_csv(filen, na = "", 
                     col_types = cols(LAND_VAR=col_number(), 
                                      ALT_FLAG=col_integer(),
                                      YEAR=col_integer(),
@@ -47,19 +46,34 @@ readcatch <- function(x, xfile, state) {
   return(C.tmp)}
 
 readeffort <- function(x, xfile, state) {
-  if(length(grep("z", x))) {filen <- archive_read(x, file=xfile)} else {filen <- x}
-  C.tmp <- read_csv(filen, na = "")
+  if(length(grep("z", x))) {filen <- archive::archive_read(x, file=xfile)} else {filen <- x}
+  C.tmp <- readr::read_csv(filen, na = "")
   names(C.tmp) <- toupper(names(C.tmp))
   C.tmp <- C.tmp[C.tmp$ST==state,]
   #effort[[length(effort)+1]] <- C.tmp
   return(C.tmp)
 }
 
+#' MRIP Outlier
+#'
+#' Creates output to help you identify outliers
+#' @param styr Start year
+#' @param endyr End year
+#' @param y_prelim The latest year in the data (preliminary)
+#' @param species A vector of the species to include
+#' @param waves The MRIP waves to include
+#' @param areas Strata in distance from shore
+#' @param modes Modes of fishing
+#' @param state The FIPS code for the state of interest
+#' @return Output files to explore the data with the parameters entered
+#' @examples 
+#' mrip(2022,2023,2024,c("SUMMER FLOUNDER","TAUTOG"),c(3,4),c("INLAND","OCEAN (<= 3 MI)"),c("CHARTER BOAT", "PARTY BOAT"), 24);
+#' @export
 mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state) {
 url <- 'https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/'
-filenames = paste(url, strsplit(getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
-filenames <- str_extract(filenames[c(grep("zip", filenames),grep(".csv", filenames,fixed=TRUE))],"mr[a-z0-9_]*[.][a-z]*")
-yrs <- str_extract(filenames, "[0-9]{4}(_[0-9]{4})*")
+filenames = paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
+filenames <- stringr::str_extract(filenames[c(grep("zip", filenames),grep(".csv", filenames,fixed=TRUE))],"mr[a-z0-9_]*[.][a-z]*")
+yrs <- stringr::str_extract(filenames, "[0-9]{4}(_[0-9]{4})*")
 yrs <- sapply(sapply(yrs, strsplit, split="_"), as.integer) 
 yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
 
@@ -89,7 +103,7 @@ data <- lapply(styr:endyr, function(y) {
   
   return(data1)
   #catch data
-  #switched to read_csv rather than read.csv due to issues setting catch estimates with commas in them to numeric values
+  #switched to readr::read_csv rather than read.csv due to issues setting catch estimates with commas in them to numeric values
   #Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
   
   
@@ -113,6 +127,8 @@ combined_catch <- rbind(catch, catch_prelim)
 
 #For looking for outliers by species at the wave level, first need to collapse estimates
 #across the modes and areas to get wave level estimates by species for each year
+
+#LEFT OFF HERE, PICKUP TO SPECIFY THE PACKAGES with ::
 catch_summed <- catch %>%
   filter(ST==state) %>%
   group_by(COMMON, YEAR, WAVE) %>%
