@@ -90,11 +90,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   yrs <- stringr::str_extract(filenames, "[0-9]{4}(_[0-9]{4})*")
   yrs <- sapply(sapply(yrs, strsplit, split = "_"), as.integer)
   yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
-
-  catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
-  effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
-  catch_prelim <- readcatch(paste0(url, catchp), catchp, state)
-  effort_prelim <- readeffort(paste0(url, effortp), effortp, state)
   
   # Combine files for catch and effort estimates for the "bywave" files
   # Code modified from a loop written by Katie Drew (ASMFC)
@@ -126,9 +121,20 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
 
   catch <- bind_rows(lapply(data, "[[", 1))
   effort <- bind_rows(lapply(data, "[[", 2))
-  # need combined file for graphing later in code
-  combined_catch <- rbind(catch, catch_prelim)
-
+  
+  
+  if(!is.na(y_prelim)) {
+    catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
+    effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
+    catch_prelim <- readcatch(paste0(url, catchp), catchp, state)
+    effort_prelim <- readeffort(paste0(url, effortp), effortp, state)
+  } else {
+    catch_prelim <- data.frame(matrix(ncol = ncol(catch), nrow = 0))
+    colnames(catch_prelim) <- colnames(catch)
+    effort_prelim <- data.frame(matrix(ncol = ncol(effort), nrow = 0))
+    colnames(effort_prelim) <- colnames(effort)
+  }
+  
   # For looking for outliers by species at the wave level, first need to collapse estimates
   # across the modes and areas to get wave level estimates by species for each year
   catch_summed <- catch %>%
@@ -140,9 +146,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       sum_rel = sum(ESTREL, na.rm = TRUE),
       .groups = "drop"
     )
-
+  
   ##### TOTAL CATCH COMPARISONS######
-
+  
   # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
     filter(YEAR >= styr & YEAR <= endyr) %>%
@@ -153,6 +159,44 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       n = n(), # Calculate sample size for each group
       .groups = "drop"
     )
+  
+  ##### LANDING (A+B1) COMPARISONS######
+  # Group by relevant columns and calculate sample size n, mean, and std dev
+  land_stats <- catch_summed %>%
+    filter(YEAR >= styr & YEAR <= endyr) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      mean_catch = mean(sum_land, na.rm = TRUE),
+      sd_catch = sd(sum_land, na.rm = TRUE),
+      n = n(), # Calculate sample size for each group
+      .groups = "drop"
+    )
+ 
+   ##### LIVE RELEASE (B2) COMPARISONS######
+  # Group by relevant columns and calculate sample size n, mean, and std dev
+  rel_stats <- catch_summed %>%
+    filter(YEAR >= styr & YEAR <= endyr) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      mean_catch = mean(sum_rel, na.rm = TRUE),
+      sd_catch = sd(sum_rel, na.rm = TRUE),
+      n = n(), # Calculate sample size for each group
+      .groups = "drop"
+    )
+  # Group by relevant columns and calculate sample size n, mean, and std dev
+  effort_stats <- effort %>%
+    filter(YEAR >= styr & YEAR <= endyr) %>%
+    group_by(WAVE, MODE_FX_F, AREA_X_F) %>%
+    summarise(
+      mean_trips = mean(ESTRIPS, na.rm = TRUE),
+      sd_trips = sd(ESTRIPS, na.rm = TRUE),
+      n = n(), # Calculate sample size for each group
+      .groups = "drop"
+    )
+  
+  #prelim calculations###########
+  # need combined file for graphing later in code
+  combined_catch <- rbind(catch, catch_prelim)
 
   totcat_prelim <- catch_prelim %>%
     filter(ST == state) %>%
@@ -226,18 +270,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   }
   dev.off() # closes the PDF device
 
-  ##### LANDING (A+B1) COMPARISONS######
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  land_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      mean_catch = mean(sum_land, na.rm = TRUE),
-      sd_catch = sd(sum_land, na.rm = TRUE),
-      n = n(), # Calculate sample size for each group
-      .groups = "drop"
-    )
-
   land_prelim <- catch_prelim %>%
     filter(ST == state) %>%
     group_by(COMMON, WAVE) %>%
@@ -298,18 +330,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     }
   }
   dev.off() # closes the PDF device
-
-  ##### LIVE RELEASE (B2) COMPARISONS######
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  rel_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      mean_catch = mean(sum_rel, na.rm = TRUE),
-      sd_catch = sd(sum_rel, na.rm = TRUE),
-      n = n(), # Calculate sample size for each group
-      .groups = "drop"
-    )
 
   rel_prelim <- catch_prelim %>%
     filter(ST == state) %>%
@@ -377,17 +397,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   combined_effort <- rbind(effort, effort_prelim)
 
   # Calculating effort outliers at the wave, mode, and area level
-
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  effort_stats <- effort %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
-    group_by(WAVE, MODE_FX_F, AREA_X_F) %>%
-    summarise(
-      mean_trips = mean(ESTRIPS, na.rm = TRUE),
-      sd_trips = sd(ESTRIPS, na.rm = TRUE),
-      n = n(), # Calculate sample size for each group
-      .groups = "drop"
-    )
 
   trips <- effort_prelim %>%
     filter(ST == state) %>%

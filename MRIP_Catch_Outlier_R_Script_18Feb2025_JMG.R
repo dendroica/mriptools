@@ -1,4 +1,5 @@
 #devtools::install_github("dendroica/mrip")
+#devtools::update_packages("mrip")
 library(mrip)
 setwd("~/out")
 #set the FIPS code for your state
