@@ -20,31 +20,31 @@ readcatch <- function(x, xfile, state, species, waves, areas, modes) {
       ST = readr::col_integer(),
       MODE_FX = readr::col_integer(),
       AREA_X = readr::col_integer(),
-      ESTCLAIM = readr::col_integer(),
-      ESTCLVAR = readr::col_integer(),
-      LOWER_ESTCLAIM = readr::col_integer(),
-      UPPER_ESTCLAIM = readr::col_integer(),
+      #ESTCLAIM = readr::col_integer(),
+      #ESTCLVAR = readr::col_integer(),
+      #LOWER_ESTCLAIM = readr::col_integer(),
+      #UPPER_ESTCLAIM = readr::col_integer(),
       # PC_ESTCLAIM_IMP=readr::col_integer(),
-      ESTHARV = readr::col_integer(),
-      ESTHVAR = readr::col_integer(),
-      LOWER_ESTHARV = readr::col_integer(),
-      UPPER_ESTHARV = readr::col_integer(),
-      LANDING = readr::col_integer(),
-      LAND_VAR = readr::col_integer(),
-      LOWER_LANDING = readr::col_integer(), SP_CODE = readr::col_character(), UPPER_LANDING = readr::col_integer(),
-      ESTREL = readr::col_integer(),
-      ESTRLVAR = readr::col_integer(), LOWER_ESTREL = readr::col_integer(), UPPER_ESTREL = readr::col_integer(),
-      TOT_VAR = readr::col_integer(), UPPER_TOT_CAT = readr::col_integer(), LBS_AB1 = readr::col_integer(),
-      VAR_LBS = readr::col_integer(), LOWER_LBS_AB1 = readr::col_integer(), UPPER_LBS_AB1 = readr::col_integer(),
-      WGT_AB1 = readr::col_integer(), VAR_WAB1 = readr::col_integer(), LOWER_WGT_AB1 = readr::col_integer(),
-      UPPER_WGT_AB1 = readr::col_integer(), TOT_LEN = readr::col_integer(),
+      #ESTHARV = readr::col_integer(),
+      #ESTHVAR = readr::col_integer(),
+      #LOWER_ESTHARV = readr::col_integer(),
+      #UPPER_ESTHARV = readr::col_integer(),
+      #LANDING = readr::col_integer(),
+      #LAND_VAR = readr::col_integer(),
+      LOWER_LANDING = readr::col_integer(), 
+      SP_CODE = readr::col_character(), #, #UPPER_LANDING = readr::col_integer(),
+      #ESTREL = readr::col_integer(),
+      ESTRLVAR = readr::col_integer(), LOWER_ESTREL = readr::col_integer(), UPPER_ESTREL = readr::col_integer()#,
+      #TOT_VAR = readr::col_integer(), UPPER_TOT_CAT = readr::col_integer(), LBS_AB1 = readr::col_integer(),
+      #VAR_LBS = readr::col_integer(), LOWER_LBS_AB1 = readr::col_integer(), UPPER_LBS_AB1 = readr::col_integer(),
+      #WGT_AB1 = readr::col_integer(), VAR_WAB1 = readr::col_integer(), LOWER_WGT_AB1 = readr::col_integer(),
+      #UPPER_WGT_AB1 = readr::col_integer(), TOT_LEN = readr::col_integer(),
       # VARTOLEN=readr::col_integer(),
-      LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer()
-    )
+      #LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(), 
+    ), lazy=T
   )
-
-  names(C.tmp) <- toupper(names(C.tmp))
   C.tmp <- C.tmp %>% filter(ST == state & COMMON %in% species & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
 
@@ -54,9 +54,9 @@ readeffort <- function(x, xfile, state, waves, areas, modes) {
   } else {
     filen <- x
   }
-  C.tmp <- readr::read_csv(filen, na = "")
-  names(C.tmp) <- toupper(names(C.tmp))
+  C.tmp <- readr::read_csv(filen, na = "", lazy=T)
   C.tmp <- C.tmp %>% filter(ST == state & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
 
@@ -122,7 +122,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   catch <- bind_rows(lapply(data, "[[", 1))
   effort <- bind_rows(lapply(data, "[[", 2))
   
-  
   if(!is.na(y_prelim)) {
     catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
     effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
@@ -138,7 +137,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # For looking for outliers by species at the wave level, first need to collapse estimates
   # across the modes and areas to get wave level estimates by species for each year
   catch_summed <- catch %>%
-    filter(ST == state) %>%
+    #filter(ST == state) %>%
     group_by(COMMON, YEAR, WAVE) %>%
     summarise(
       sum_totcat = sum(TOT_CAT, na.rm = TRUE),
@@ -151,7 +150,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   
   # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>% #do we need this filter?
+    #filter(YEAR >= styr & YEAR <= endyr) %>% #do we need this filter?
     group_by(COMMON, WAVE) %>%
     summarise(
       mean_catch = mean(sum_totcat, na.rm = TRUE),
@@ -163,7 +162,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   ##### LANDING (A+B1) COMPARISONS######
   # Group by relevant columns and calculate sample size n, mean, and std dev
   land_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
+    #filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
       mean_catch = mean(sum_land, na.rm = TRUE),
@@ -175,7 +174,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
    ##### LIVE RELEASE (B2) COMPARISONS######
   # Group by relevant columns and calculate sample size n, mean, and std dev
   rel_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
+    #filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
       mean_catch = mean(sum_rel, na.rm = TRUE),
@@ -185,7 +184,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     )
   # Group by relevant columns and calculate sample size n, mean, and std dev
   effort_stats <- effort %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
+    #filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(WAVE, MODE_FX_F, AREA_X_F) %>%
     summarise(
       mean_trips = mean(ESTRIPS, na.rm = TRUE),
