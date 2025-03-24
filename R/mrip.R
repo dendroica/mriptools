@@ -126,8 +126,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   if(!is.na(y_prelim)) {
     catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
     effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
-    catch_prelim <- readcatch(paste0(url, catchp), catchp, state)
-    effort_prelim <- readeffort(paste0(url, effortp), effortp, state)
+    catch_prelim <- readcatch(paste0(url, catchp), catchp, state, species, waves, areas, modes)
+    effort_prelim <- readeffort(paste0(url, effortp), effortp, state, waves, areas, modes)
   } else {
     catch_prelim <- data.frame(matrix(ncol = ncol(catch), nrow = 0))
     colnames(catch_prelim) <- colnames(catch)
