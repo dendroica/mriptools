@@ -8,7 +8,7 @@
 ####You should only need to change the variables in this section at the beginning to get the code to run###
 
 #Set this to the folder where you would like the results of the outlier code to be output
-source("~/mrip_eda.R")
+#source("~/mrip_eda.R")
 setwd("~/out")
 
 #load in packages needed for analysis (you may need to install these in R if you don't have them already)

@@ -1,44 +1,44 @@
-library(tidyverse)
-library(outliers)
-library(readr)
-library(ggplot2)
-library(tidyr)
+#library(tidyverse)
+#library(outliers)
+#library(readr)
+#library(ggplot2)
+#library(tidyr)
 #library(archive)
 #library(RCurl)
 #library(stringr)
-library(dplyr) #Depends
+#library(dplyr) #Depends
 
 readcatch <- function(x, xfile, state) {
   if(length(grep("z", x))) {filen <- archive::archive_read(x, file=xfile)} else {filen <- x}
   C.tmp <- readr::read_csv(filen, na = "", 
-                    col_types = cols(LAND_VAR=col_number(), 
-                                     ALT_FLAG=col_integer(),
-                                     YEAR=col_integer(),
-                                     WAVE=col_integer(),
-                                     SUB_REG=col_integer(),
-                                     ST=col_integer(),
-                                     MODE_FX=col_integer(),
-                                     AREA_X=col_integer(),
-                                     ESTCLAIM=col_integer(),
-                                     ESTCLVAR=col_integer(),
-                                     LOWER_ESTCLAIM=col_integer(),
-                                     UPPER_ESTCLAIM=col_integer(),
-                                     #PC_ESTCLAIM_IMP=col_integer(),
-                                     ESTHARV=col_integer(),
-                                     ESTHVAR=col_integer(),
-                                     LOWER_ESTHARV=col_integer(),
-                                     UPPER_ESTHARV=col_integer(),
-                                     LANDING=col_integer(),
-                                     LAND_VAR=col_integer(),
-                                     LOWER_LANDING=col_integer(), SP_CODE = col_character(), UPPER_LANDING=col_integer(),
-                                     ESTREL=col_integer(),
-                                     ESTRLVAR=col_integer(), LOWER_ESTREL=col_integer(), UPPER_ESTREL=col_integer(),
-                                     TOT_VAR=col_integer(), UPPER_TOT_CAT=col_integer(), LBS_AB1= col_integer(), 
-                                     VAR_LBS=col_integer(), LOWER_LBS_AB1=col_integer(), UPPER_LBS_AB1=col_integer(),
-                                     WGT_AB1=col_integer(), VAR_WAB1=col_integer(), LOWER_WGT_AB1=col_integer(),
-                                     UPPER_WGT_AB1=col_integer(), TOT_LEN=col_integer(), 
-                                     #VARTOLEN=col_integer(),
-                                     LOWER_TOT_LEN=col_integer(), UPPER_TOT_LEN=col_integer(), MISS_FISH=col_integer()))
+                    col_types = readr::cols(LAND_VAR=readr::col_number(), 
+                                     ALT_FLAG=readr::col_integer(),
+                                     YEAR=readr::col_integer(),
+                                     WAVE=readr::col_integer(),
+                                     SUB_REG=readr::col_integer(),
+                                     ST=readr::col_integer(),
+                                     MODE_FX=readr::col_integer(),
+                                     AREA_X=readr::col_integer(),
+                                     ESTCLAIM=readr::col_integer(),
+                                     ESTCLVAR=readr::col_integer(),
+                                     LOWER_ESTCLAIM=readr::col_integer(),
+                                     UPPER_ESTCLAIM=readr::col_integer(),
+                                     #PC_ESTCLAIM_IMP=readr::col_integer(),
+                                     ESTHARV=readr::col_integer(),
+                                     ESTHVAR=readr::col_integer(),
+                                     LOWER_ESTHARV=readr::col_integer(),
+                                     UPPER_ESTHARV=readr::col_integer(),
+                                     LANDING=readr::col_integer(),
+                                     LAND_VAR=readr::col_integer(),
+                                     LOWER_LANDING=readr::col_integer(), SP_CODE = readr::col_character(), UPPER_LANDING=readr::col_integer(),
+                                     ESTREL=readr::col_integer(),
+                                     ESTRLVAR=readr::col_integer(), LOWER_ESTREL=readr::col_integer(), UPPER_ESTREL=readr::col_integer(),
+                                     TOT_VAR=readr::col_integer(), UPPER_TOT_CAT=readr::col_integer(), LBS_AB1= readr::col_integer(), 
+                                     VAR_LBS=readr::col_integer(), LOWER_LBS_AB1=readr::col_integer(), UPPER_LBS_AB1=readr::col_integer(),
+                                     WGT_AB1=readr::col_integer(), VAR_WAB1=readr::col_integer(), LOWER_WGT_AB1=readr::col_integer(),
+                                     UPPER_WGT_AB1=readr::col_integer(), TOT_LEN=readr::col_integer(), 
+                                     #VARTOLEN=readr::col_integer(),
+                                     LOWER_TOT_LEN=readr::col_integer(), UPPER_TOT_LEN=readr::col_integer(), MISS_FISH=readr::col_integer()))
   
   names(C.tmp) <- toupper(names(C.tmp))
   C.tmp <- C.tmp[C.tmp$ST==state,]
@@ -66,9 +66,17 @@ readeffort <- function(x, xfile, state) {
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
 #' @return Output files to explore the data with the parameters entered
+#' @export
+#' @import ggplot2
+#' @import readr
+#' @import dplyr
+#' @importFrom tidyr complete
+#' @importFrom RCurl getURL
+#' @importFrom stringr str_extract
+#' @importFrom archive archive_read
 #' @examples 
 #' mrip(2022,2023,2024,c("SUMMER FLOUNDER","TAUTOG"),c(3,4),c("INLAND","OCEAN (<= 3 MI)"),c("CHARTER BOAT", "PARTY BOAT"), 24);
-#' @export
+
 mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state) {
 url <- 'https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/'
 filenames = paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")

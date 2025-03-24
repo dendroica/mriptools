@@ -1,5 +1,26 @@
 Package: mrip
 Type: Package
 Title: MRIP Outlier
+Description: A prototype package for detecting outliers in MRIP data.
+Authors@R: 
+  c(person(given = "Jessica",
+           family = "Gorzo",
+           role = c("cre"),
+           email = "jessica.gorzo@dep.nj.gov",
+           comment = c(ORCID = "0000-0002-3715-8229")),
+    person(given = "Rachel",
+           family = "Sysak",
+           role = "aut"),
+    person(given = "Angela",
+           family = "Giuliano",
+           role = "aut"),
+    person(given = "Dawn",
+           family = "Franco",
+           role = "aut"))
+Maintainer:  Jessica M. Gorzo <jessica.gorzo@dep.nj.gov>
 Version: 0.0.1.0
+License: GPL-3
+Encoding: UTF-8
 RoxygenNote: 7.3.2
+Depends: dplyr, ggplot2, readr
+Imports: tidyr, archive, RCurl, stringr
