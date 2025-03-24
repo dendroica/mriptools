@@ -1,13 +1,8 @@
-# library(tidyverse)
-# library(outliers)
-# library(readr)
-# library(ggplot2)
-# library(tidyr)
-# library(archive)
-# library(RCurl)
-# library(stringr)
-# library(dplyr) #Depends
-
+# catch data
+# switched to readr::read_csv rather than read.csv due to issues setting catch estimates with commas in them to numeric values
+# Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
+# subsets to just your state's data #need same number of columns for this to work
+# need same number of columns for this to work
 readcatch <- function(x, xfile, state) {
   if (length(grep("z", x))) {
     filen <- archive::archive_read(x, file = xfile)
@@ -50,7 +45,6 @@ readcatch <- function(x, xfile, state) {
 
   names(C.tmp) <- toupper(names(C.tmp))
   C.tmp <- C.tmp[C.tmp$ST == state, ]
-  # catch[[length(catch)+1]] <- C.tmp
   return(C.tmp)
 }
 
@@ -63,7 +57,6 @@ readeffort <- function(x, xfile, state) {
   C.tmp <- readr::read_csv(filen, na = "")
   names(C.tmp) <- toupper(names(C.tmp))
   C.tmp <- C.tmp[C.tmp$ST == state, ]
-  # effort[[length(effort)+1]] <- C.tmp
   return(C.tmp)
 }
 
@@ -89,6 +82,7 @@ readeffort <- function(x, xfile, state) {
 #' @importFrom archive archive_read
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
+
 mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state) {
   url <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
   filenames <- paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
@@ -101,8 +95,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
   catch_prelim <- readcatch(paste0(url, catchp), catchp, state)
   effort_prelim <- readeffort(paste0(url, effortp), effortp, state)
-
-  #### You don't need to change the code past this section for your state###
+  
   # Combine files for catch and effort estimates for the "bywave" files
   # Code modified from a loop written by Katie Drew (ASMFC)
   data <- lapply(styr:endyr, function(y) {
@@ -125,33 +118,19 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     )
 
     return(data1)
-    # catch data
-    # switched to readr::read_csv rather than read.csv due to issues setting catch estimates with commas in them to numeric values
-    # Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
-
-
-    # subsets to just your state's data #need same number of columns for this to work
-    # catch <- bind_rows(catch, C.tmp) #allows for the extra columns that were added since 2020 in public datasets
-    # subsets to just your state's data
-    # need same number of columns for this to work
-    # effort <- bind_rows(effort, E.tmp) #allows for the extra columns that were added since 2020 in public datasets
   })
 
   # now as it is, data is a nested list...
   # first level: year
   # 2nd level: 1 - catch, 2 - effort
-  # PICK UP HERE
 
   catch <- bind_rows(lapply(data, "[[", 1))
   effort <- bind_rows(lapply(data, "[[", 2))
   # need combined file for graphing later in code
   combined_catch <- rbind(catch, catch_prelim)
-  # combined_catch <- combined_catch[combined_catch$ST==state,]
 
   # For looking for outliers by species at the wave level, first need to collapse estimates
   # across the modes and areas to get wave level estimates by species for each year
-
-  # LEFT OFF HERE, PICKUP TO SPECIFY THE PACKAGES with ::
   catch_summed <- catch %>%
     filter(ST == state) %>%
     group_by(COMMON, YEAR, WAVE) %>%
@@ -164,7 +143,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
 
   ##### TOTAL CATCH COMPARISONS######
 
-  # Group by relevant columns and calculate sample size n, mean, and sd for 2017-2023
+  # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
     filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
@@ -183,7 +162,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
 
-  # Join 2024 data with calculated harvest_stats (mean, sd, and n)
   totcat <- totcat_prelim %>%
     left_join(totcat_stats, by = c("COMMON", "WAVE"))
 
@@ -249,7 +227,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   ##### LANDING (A+B1) COMPARISONS######
-  # Group by relevant columns and calculate sample size n, mean, and sd for 2017-2023
+  # Group by relevant columns and calculate sample size n, mean, and std dev
   land_stats <- catch_summed %>%
     filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
@@ -268,7 +246,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
 
-  # Join 2024 data with calculated harvest_stats (mean, sd, and n)
   land <- land_prelim %>%
     left_join(land_stats, by = c("COMMON", "WAVE"))
 
@@ -323,7 +300,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   ##### LIVE RELEASE (B2) COMPARISONS######
-  # Group by relevant columns and calculate sample size n, mean, and sd for 2017-2023
+  # Group by relevant columns and calculate sample size n, mean, and std dev
   rel_stats <- catch_summed %>%
     filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
@@ -342,7 +319,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
 
-  # Join 2024 data with calculated harvest_stats (mean, sd, and n)
   rel <- rel_prelim %>%
     left_join(rel_stats, by = c("COMMON", "WAVE"))
 
@@ -397,15 +373,12 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   ##### Effort section
-  # combined_effort = read.csv("combined_effort_2017_2024_level2_filter.csv", header = TRUE)
-
   # need combined file for graphing later in code
   combined_effort <- rbind(effort, effort_prelim)
-  # combined_effort <- combined_effort[combined_effort$ST==state,]
 
   # Calculating effort outliers at the wave, mode, and area level
 
-  # Group by relevant columns and calculate sample size n, mean, and sd for 2017-2023
+  # Group by relevant columns and calculate sample size n, mean, and std dev
   effort_stats <- effort %>%
     filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(WAVE, MODE_FX_F, AREA_X_F) %>%
@@ -416,7 +389,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
 
-  # Join 2024 data with calculated harvest_stats (mean, sd, and n)
   trips <- effort_prelim %>%
     filter(ST == state) %>%
     left_join(effort_stats, by = c("WAVE", "MODE_FX_F", "AREA_X_F"))
