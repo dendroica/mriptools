@@ -3,7 +3,7 @@
 # Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
 # subsets to just your state's data #need same number of columns for this to work
 # need same number of columns for this to work
-readcatch <- function(x, xfile, state) {
+readcatch <- function(x, xfile, state, species, waves, areas, modes) {
   if (length(grep("z", x))) {
     filen <- archive::archive_read(x, file = xfile)
   } else {
@@ -44,11 +44,11 @@ readcatch <- function(x, xfile, state) {
   )
 
   names(C.tmp) <- toupper(names(C.tmp))
-  C.tmp <- C.tmp[C.tmp$ST == state, ]
+  C.tmp <- C.tmp %>% filter(ST == state & COMMON %in% species & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
   return(C.tmp)
 }
 
-readeffort <- function(x, xfile, state) {
+readeffort <- function(x, xfile, state, waves, areas, modes) {
   if (length(grep("z", x))) {
     filen <- archive::archive_read(x, file = xfile)
   } else {
@@ -56,7 +56,7 @@ readeffort <- function(x, xfile, state) {
   }
   C.tmp <- readr::read_csv(filen, na = "")
   names(C.tmp) <- toupper(names(C.tmp))
-  C.tmp <- C.tmp[C.tmp$ST == state, ]
+  C.tmp <- C.tmp %>% filter(ST == state & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
   return(C.tmp)
 }
 
@@ -104,10 +104,10 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
         print(path)
         if (length(grep("ca", x)) > 0) {
           file <- paste0("mrip_catch_bywave_", y, ".csv")
-          data <- readcatch(path, file, state)
+          data <- readcatch(path, file, state, species, waves, areas, modes)
         } else {
           file <- paste0("mrip_effort_bywave_", y, ".csv")
-          data <- readeffort(path, file, state)
+          data <- readeffort(path, file, state, waves, areas, modes)
         }
       }
     )
@@ -151,7 +151,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   
   # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
-    filter(YEAR >= styr & YEAR <= endyr) %>%
+    filter(YEAR >= styr & YEAR <= endyr) %>% #do we need this filter?
     group_by(COMMON, WAVE) %>%
     summarise(
       mean_catch = mean(sum_totcat, na.rm = TRUE),
@@ -199,7 +199,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   combined_catch <- rbind(catch, catch_prelim)
 
   totcat_prelim <- catch_prelim %>%
-    filter(ST == state) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
       sum_catch = sum(TOT_CAT, na.rm = TRUE),
@@ -249,8 +248,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # set up total catch plot function
   totcatplot <- function(wavenum, species) {
     p <- combined_catch %>%
-      filter(COMMON == species) %>%
-      filter(WAVE == wavenum) %>%
       ggplot(aes(x = YEAR, y = TOT_CAT)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_TOT_CAT, ymax = UPPER_TOT_CAT)) +
@@ -271,7 +268,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   land_prelim <- catch_prelim %>%
-    filter(ST == state) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
       sum_catch = sum(LANDING, na.rm = TRUE), # sums each species' landings across modes & areas for each wave
@@ -310,8 +306,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # set up landings plot function
   landingplot <- function(wavenum, species) {
     p <- combined_catch %>%
-      filter(COMMON == species) %>%
-      filter(WAVE == wavenum) %>%
       ggplot(aes(x = YEAR, y = LANDING)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_LANDING, ymax = UPPER_LANDING)) +
@@ -332,7 +326,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   rel_prelim <- catch_prelim %>%
-    filter(ST == state) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
       sum_catch = sum(ESTREL, na.rm = TRUE), # sums each species' landings across modes for each wave
@@ -371,8 +364,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # set up release plot function
   relplot <- function(wavenum, species) {
     p <- combined_catch %>%
-      filter(COMMON == species) %>%
-      filter(WAVE == wavenum) %>%
       ggplot(aes(x = YEAR, y = ESTREL)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
@@ -399,7 +390,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Calculating effort outliers at the wave, mode, and area level
 
   trips <- effort_prelim %>%
-    filter(ST == state) %>%
     left_join(effort_stats, by = c("WAVE", "MODE_FX_F", "AREA_X_F"))
 
   # Apply the Thompson Tau calculation
@@ -424,7 +414,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # set up effort plot function
   effplot <- function(wavenum) {
     p <- combined_effort %>%
-      filter(WAVE == wavenum) %>%
       ggplot(aes(x = YEAR, y = ESTRIPS)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
