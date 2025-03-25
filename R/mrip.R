@@ -122,18 +122,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   catch <- bind_rows(lapply(data, "[[", 1))
   effort <- bind_rows(lapply(data, "[[", 2))
   
-  if(!is.na(y_prelim)) {
-    catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
-    effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
-    catch_prelim <- readcatch(paste0(url, catchp), catchp, state, species, waves, areas, modes)
-    effort_prelim <- readeffort(paste0(url, effortp), effortp, state, waves, areas, modes)
-  } else {
-    catch_prelim <- data.frame(matrix(ncol = ncol(catch), nrow = 0))
-    colnames(catch_prelim) <- colnames(catch)
-    effort_prelim <- data.frame(matrix(ncol = ncol(effort), nrow = 0))
-    colnames(effort_prelim) <- colnames(effort)
-  }
-  
   # For looking for outliers by species at the wave level, first need to collapse estimates
   # across the modes and areas to get wave level estimates by species for each year
   catch_summed <- catch %>%
@@ -146,7 +134,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
   
-  ##### TOTAL CATCH COMPARISONS######
+  ##### TOTAL CATCH COMPARISONS###### 
   
   # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
@@ -170,8 +158,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       n = n(), # Calculate sample size for each group
       .groups = "drop"
     )
- 
-   ##### LIVE RELEASE (B2) COMPARISONS######
+  
+  ##### LIVE RELEASE (B2) COMPARISONS######
   # Group by relevant columns and calculate sample size n, mean, and std dev
   rel_stats <- catch_summed %>%
     #filter(YEAR >= styr & YEAR <= endyr) %>%
@@ -193,25 +181,66 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
   
+  if(!is.na(y_prelim)) {
+    catchp <- paste0("mrip_catch_bywave_", y_prelim, "_prelim", ".csv")
+    effortp <- paste0("mrip_effort_bywave_", y_prelim, "_prelim", ".csv")
+    catch_prelim <- readcatch(paste0(url, catchp), catchp, state, species, waves, areas, modes)
+    effort_prelim <- readeffort(paste0(url, effortp), effortp, state, waves, areas, modes)
+    
+    totcat_prelim <- catch_prelim %>%
+      group_by(COMMON, WAVE) %>%
+      summarise(
+        sum_catch = sum(TOT_CAT, na.rm = TRUE),
+        .groups = "drop"
+      )
+    
+    totcat_stats <- totcat_prelim %>%
+      left_join(totcat_stats, by = c("COMMON", "WAVE"))
+    
+    catch <- rbind(catch, catch_prelim)
+    
+    rel_prelim <- catch_prelim %>%
+      group_by(COMMON, WAVE) %>%
+      summarise(
+        sum_catch = sum(ESTREL, na.rm = TRUE), # sums each species' landings across modes for each wave
+        .groups = "drop"
+      )
+    
+    rel_stats <- rel_prelim %>%
+      left_join(rel_stats, by = c("COMMON", "WAVE"))
+    
+    land_prelim <- catch_prelim %>%
+      group_by(COMMON, WAVE) %>%
+      summarise(
+        sum_catch = sum(LANDING, na.rm = TRUE), # sums each species' landings across modes & areas for each wave
+        .groups = "drop"
+      )
+    
+    land_stats <- land_prelim %>%
+      left_join(land_stats, by = c("COMMON", "WAVE"))
+    
+    # need combined file for graphing later in code
+    effort <- rbind(effort, effort_prelim)
+    
+    # Calculating effort outliers at the wave, mode, and area level
+    
+    effort_stats <- effort_prelim %>%
+      left_join(effort_stats, by = c("WAVE", "MODE_FX_F", "AREA_X_F"))
+    
+  } else {
+    catch_prelim <- data.frame(matrix(ncol = ncol(catch), nrow = 0))
+    colnames(catch_prelim) <- colnames(catch)
+    effort_prelim <- data.frame(matrix(ncol = ncol(effort), nrow = 0))
+    colnames(effort_prelim) <- colnames(effort)
+  }
+  
   #prelim calculations###########
   # need combined file for graphing later in code
-  combined_catch <- rbind(catch, catch_prelim)
-
-  totcat_prelim <- catch_prelim %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      sum_catch = sum(TOT_CAT, na.rm = TRUE),
-      .groups = "drop"
-    )
-
-  totcat <- totcat_prelim %>%
-    left_join(totcat_stats, by = c("COMMON", "WAVE"))
 
   # Had an issue in the next section because of some tot_catch estimates in 2024 that aren't in the 2017-2023 summaries
   # Removed these first and put the ones being removed into a unique file so they can still be looked at later
-  totcat_notCommon <- totcat[is.na(totcat$n), ]
-
-  totcat <- totcat[!is.na(totcat$n), ]
+  totcat_notCommon <- totcat_stats[is.na(totcat_stats$n), ]
+  totcat <- totcat_stats[!is.na(totcat_stats$n), ]
 
   # Apply the Thompson Tau calculation
   totcat <- totcat %>%
@@ -235,7 +264,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Wanted to graph the outputs to see how catch levels & PSEs compare across years by wave, mode, and area
   # Graphed according to the species list, waves, areas, and modes you set in the beginning section of code
 
-  combined_catch <- combined_catch %>%
+  combined_catch <- catch %>%
     tidyr::complete(COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
 
   combined_catch$YEAR <- as.factor(combined_catch$YEAR)
@@ -265,22 +294,11 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     }
   }
   dev.off() # closes the PDF device
-
-  land_prelim <- catch_prelim %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      sum_catch = sum(LANDING, na.rm = TRUE), # sums each species' landings across modes & areas for each wave
-      .groups = "drop"
-    )
-
-  land <- land_prelim %>%
-    left_join(land_stats, by = c("COMMON", "WAVE"))
-
   # Had an issue in the next section because of some tot_catch estimates in 2024 that aren't in the 2017-2023 summaries
   # Removed these first and put the ones being removed into a unique file so they can still be looked at
-  land_notCommon <- land[is.na(land$n), ]
+  land_notCommon <- land_stats[is.na(land_stats$n), ]
 
-  land <- land[!is.na(land$n), ]
+  land <- land_stats[!is.na(land_stats$n), ]
 
   # Apply the Thompson Tau calculation
   land <- land %>%
@@ -324,21 +342,11 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   }
   dev.off() # closes the PDF device
 
-  rel_prelim <- catch_prelim %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      sum_catch = sum(ESTREL, na.rm = TRUE), # sums each species' landings across modes for each wave
-      .groups = "drop"
-    )
-
-  rel <- rel_prelim %>%
-    left_join(rel_stats, by = c("COMMON", "WAVE"))
-
   # Had an issue in the next section because of some tot_catch estimates in 2024 that aren't in the 2017-2023 summaries
   # Removed these first and put the ones being removed into a unique file so they can still be looked at
-  rel_notCommon <- rel[is.na(rel$n), ]
+  rel_notCommon <- rel_stats[is.na(rel_stats$n), ]
 
-  rel <- rel[!is.na(rel$n), ]
+  rel <- rel_stats[!is.na(rel_stats$n), ]
 
   # Apply the Thompson Tau calculation
   rel <- rel %>%
@@ -383,16 +391,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   dev.off() # closes the PDF device
 
   ##### Effort section
-  # need combined file for graphing later in code
-  combined_effort <- rbind(effort, effort_prelim)
-
-  # Calculating effort outliers at the wave, mode, and area level
-
-  trips <- effort_prelim %>%
-    left_join(effort_stats, by = c("WAVE", "MODE_FX_F", "AREA_X_F"))
-
   # Apply the Thompson Tau calculation
-  trips <- trips %>%
+  trips <- effort_stats %>%
     rowwise() %>%
     mutate(outlier = {
       # Calculate tau critical value
@@ -412,7 +412,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Graphing of effort
   # set up effort plot function
   effplot <- function(wavenum) {
-    p <- combined_effort %>%
+    p <- effort %>%
       ggplot(aes(x = YEAR, y = ESTRIPS)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
