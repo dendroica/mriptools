@@ -347,11 +347,21 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     filter(outlier == TRUE)
   write.csv(land_outliers, "landings_outliers.csv")
   
+  rel_stats <- catch_summed %>%
+    #filter(YEAR >= styr & YEAR <= endyr) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      mean_catch_r = mean(sum_rel, na.rm = TRUE),
+      sd_catch_r = sd(sum_rel, na.rm = TRUE),
+      n = n(),  # Calculate sample size for each group
+      .groups = 'drop'
+    )
+  
   rel_prelim <- catch_prelim %>%
     #filter(ST==state) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
-      sum_catch = sum(ESTREL, na.rm = TRUE), #sums each species' landings across modes for each wave
+      sum_rel = sum(ESTREL, na.rm = TRUE), #sums each species' landings across modes for each wave
       .groups = 'drop'
     )
   
