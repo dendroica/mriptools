@@ -1,2 +1,2 @@
-# mrip
+# mriptools
 outlier detection tools

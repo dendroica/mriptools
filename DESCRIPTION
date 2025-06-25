@@ -1,4 +1,4 @@
-Package: mrip
+Package: mriptools
 Type: Package
 Title: MRIP Outlier
 Description: A prototype package for detecting outliers in MRIP data.
