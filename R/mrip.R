@@ -267,8 +267,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       mean_trips = mean(ESTRIPS, na.rm = TRUE),
       sd_trips = sd(ESTRIPS, na.rm = TRUE),
       n = n(), # Calculate sample size for each group
-      .groups = "drop"
-    )
+      .groups = "drop",
+      across(ESTRIPS))
   
   ##### TOTAL CATCH COMPARISONS###### 
 
