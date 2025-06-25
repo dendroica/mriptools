@@ -309,8 +309,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     #filter(YEAR >= styr & YEAR <= endyr) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
-      mean_catch = mean(sum_land, na.rm = TRUE),
-      sd_catch = sd(sum_land, na.rm = TRUE),
+      mean_land = mean(sum_land, na.rm = TRUE),
+      sd_land = sd(sum_land, na.rm = TRUE),
       n = n(),  # Calculate sample size for each group
       .groups = 'drop'
     )
@@ -319,7 +319,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     #filter(ST==state) %>%
     group_by(COMMON, WAVE) %>%
     summarise(
-      sum_catch = sum(LANDING, na.rm = TRUE), #sums each species' landings across modes & areas for each wave
+      sum_land = sum(LANDING, na.rm = TRUE), #sums each species' landings across modes & areas for each wave
       .groups = 'drop'
     )
   
@@ -336,7 +336,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       if (n > 2) {
         t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
         tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
-        abs(sum_land - mean_catch_l) / sd_catch_l > tau
+        abs(sum_land - mean_land) / sd_land > tau
       } else {
         FALSE # Not enough data to calculate outliers
       }
