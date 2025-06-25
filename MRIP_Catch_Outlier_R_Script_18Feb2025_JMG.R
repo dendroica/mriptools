@@ -1,6 +1,6 @@
 #devtools::install_github("dendroica/mriptools")
 #devtools::update_packages("mriptools")
-library(mrip)
+library(mriptools)
 setwd("~/output/mrip_ex")
 #set the FIPS code for your state
 #GA=13, SC=45, NC=37, VA=51, MD=24, DE=10, NJ=34, NY=36, CT=9, RI=44, MA=25, NH=33, ME=23

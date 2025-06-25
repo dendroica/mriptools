@@ -305,7 +305,31 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Removed these first and put the ones being removed into a unique file so they can still be looked at
 
   # Apply the Thompson Tau calculation
-  land <- totcatch %>%
+  land_stats <- catch_summed %>%
+    #filter(YEAR >= styr & YEAR <= endyr) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      mean_catch = mean(sum_land, na.rm = TRUE),
+      sd_catch = sd(sum_land, na.rm = TRUE),
+      n = n(),  # Calculate sample size for each group
+      .groups = 'drop'
+    )
+  
+   land_prelim <- catch_prelim %>%
+    #filter(ST==state) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      sum_catch = sum(LANDING, na.rm = TRUE), #sums each species' landings across modes & areas for each wave
+      .groups = 'drop'
+    )
+  
+  land <- land_prelim %>%
+    left_join(land_stats, by = c("COMMON", "WAVE"))
+  
+  land_notCommon <- land[is.na(land$n),]
+  land <-land[!is.na(land$n),]
+  
+  land <- land %>%
     rowwise() %>%
     mutate(outlier = {
       # Calculate tau critical value
@@ -322,9 +346,23 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   land_outliers <- land %>%
     filter(outlier == TRUE)
   write.csv(land_outliers, "landings_outliers.csv")
-
+  
+  rel_prelim <- catch_prelim %>%
+    #filter(ST==state) %>%
+    group_by(COMMON, WAVE) %>%
+    summarise(
+      sum_catch = sum(ESTREL, na.rm = TRUE), #sums each species' landings across modes for each wave
+      .groups = 'drop'
+    )
+  
+  rel <- rel_prelim %>%
+    left_join(rel_stats, by = c("COMMON", "WAVE"))
+  
+  rel_notCommon <- rel[is.na(rel$n),]
+  rel <-rel[!is.na(rel$n),]
+  
   # Apply the Thompson Tau calculation
-  rel <- totcatch %>%
+  rel <- rel %>%
     rowwise() %>%
     mutate(outlier = {
       # Calculate tau critical value
