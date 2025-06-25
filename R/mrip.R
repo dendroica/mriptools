@@ -268,7 +268,8 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       sd_trips = sd(ESTRIPS, na.rm = TRUE),
       n = n(), # Calculate sample size for each group
       .groups = "drop",
-      across(ESTRIPS))
+      #across(ESTRIPS)
+      )
   
   ##### TOTAL CATCH COMPARISONS###### 
 
@@ -341,9 +342,10 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     filter(outlier == TRUE)
   write.csv(rel_outliers, "release_outliers.csv")
 
+  trips <- effort_prelim %>% left_join(effort_stats, by = c("WAVE","MODE_FX_F","AREA_X_F"))
   ##### Effort section
   # Apply the Thompson Tau calculation
-  trips <- effort_stats %>%
+  trips <- trips %>%
     rowwise() %>%
     mutate(outlier = {
       # Calculate tau critical value
