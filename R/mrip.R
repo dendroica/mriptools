@@ -193,7 +193,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   
   # set up total catch plot function
   totcatplot <- function(wavenum, species) {
-    p <- combined_catch %>%
+    p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
       ggplot(aes(x = YEAR, y = TOT_CAT)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_TOT_CAT, ymax = UPPER_TOT_CAT)) +
@@ -216,7 +216,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Graphing of landings
   # set up landings plot function
   landingplot <- function(wavenum, species) {
-    p <- combined_catch %>%
+    p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
       ggplot(aes(x = YEAR, y = LANDING)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_LANDING, ymax = UPPER_LANDING)) +
@@ -239,7 +239,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Graphing of releases
   # set up release plot function
   relplot <- function(wavenum, species) {
-    p <- combined_catch %>%
+    p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
       ggplot(aes(x = YEAR, y = ESTREL)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
