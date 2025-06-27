@@ -413,7 +413,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # Graphing of effort
   # set up effort plot function
   effplot <- function(wavenum) {
-    p <- effort %>%
+    p <- effort %>% filter(WAVE==wavenum) %>%
       ggplot(aes(x = YEAR, y = ESTRIPS)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
