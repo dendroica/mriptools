@@ -43,7 +43,7 @@ readcatch <- function(x, xfile, state, species, waves, areas, modes) {
       #LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(), 
     ), lazy=T
   )
-  C.tmp <- C.tmp %>% filter(ST == state & COMMON %in% species & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  C.tmp <- C.tmp %>% filter(ST == state & COMMON %in% species & WAVE %in% waves) #& AREA_X_F %in% areas & MODE_FX_F %in% modes)
   names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
@@ -55,7 +55,7 @@ readeffort <- function(x, xfile, state, waves, areas, modes) {
     filen <- x
   }
   C.tmp <- readr::read_csv(filen, na = "", lazy=T)
-  C.tmp <- C.tmp %>% filter(ST == state & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  C.tmp <- C.tmp %>% filter(ST == state & WAVE %in% waves) #& AREA_X_F %in% areas & MODE_FX_F %in% modes)
   names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
@@ -178,6 +178,27 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   catchall <- rbind(catch, catch_prelim)
   # need combined file for graphing later in code
   effortall <- rbind(effort, effort_prelim)
+  
+  # Graphing of effort
+  # set up effort plot function
+  effplot <- function(wavenum) {
+    p <- effortall %>% filter(WAVE==wavenum) %>%
+      ggplot(aes(x = YEAR, y = ESTRIPS)) +
+      geom_point() +
+      geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
+      labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
+      facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
+      theme_bw() +
+      scale_x_discrete(guide = guide_axis(n.dodge = 2))
+    print(p)
+  }
+  
+  # Loops through each species and produces a graph for each wave
+  pdf("EstTrips.pdf")
+  for (w in waves) {
+    effplot(w)
+  }
+  dev.off() # closes the PDF device
   
   # Wanted to graph the outputs to see how catch levels & PSEs compare across years by wave, mode, and area
   # Graphed according to the species list, waves, areas, and modes you set in the beginning section of code
@@ -409,25 +430,4 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   effort_outliers <- trips %>%
     filter(outlier == TRUE)
   write.csv(effort_outliers, "effort_outliers.csv")
-
-  # Graphing of effort
-  # set up effort plot function
-  effplot <- function(wavenum) {
-    p <- effort %>% filter(WAVE==wavenum) %>%
-      ggplot(aes(x = YEAR, y = ESTRIPS)) +
-      geom_point() +
-      geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
-      labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
-      facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
-      theme_bw() +
-      scale_x_discrete(guide = guide_axis(n.dodge = 2))
-    print(p)
-  }
-
-  # Loops through each species and produces a graph for each wave
-  pdf("EstTrips.pdf")
-  for (w in waves) {
-    effplot(w)
-  }
-  dev.off() # closes the PDF device
 }
