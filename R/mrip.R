@@ -111,7 +111,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
             data <- readeffort(path, file, state, waves, areas, modes)
         }} else {
           if (length(grep("ca", x)) > 0) {
-            data <- readcatch(path, state=state, speices=species, waves=waves)
+            data <- readcatch(path, state=state, species=species, waves=waves)
           } else {
             data <- readeffort(path, state=state, waves=waves, areas=areas, modes=modes)
           }
