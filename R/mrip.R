@@ -82,7 +82,7 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
 
-mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state) {
+mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, input=NULL) {
   url <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
   filenames <- paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
   filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))])
@@ -123,14 +123,29 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # first level: year
   # 2nd level: 1 - catch, 2 - effort
 
-  catchall <- bind_rows(lapply(data, "[[", 1))
+  catchall <- do.call(rbind, lapply(data, "[[", 1))
   
   catch_prelim <- catchall[catchall$YEAR == y_prelim,]
   catch <- catchall[catchall$YEAR %in% styr:endyr, ]
   # For looking for outliers by species at the wave level, first need to collapse estimates
   # across the modes and areas to get wave level estimates by species for each year
+  
+  res <- by(catch, list(catch$COMMON, catch$YEAR, catch$WAVE), function(x) {
+    #if (nrow(x) > 1000) {
+      c(
+        COMMON = unique(x$COMMON),
+        YEAR = unique(x$YEAR),
+        WAVE = unique(x$WAVE),
+        sum_totcat = sum(x$TOT_CAT, na.rm = TRUE),
+        sum_land = sum(x$LANDING, na.rm = TRUE),
+        sum_rel = sum(x$ESTREL, na.rm = TRUE))
+    }
+) #PICK BACK UP HERE...COMES OUT AS CHAR
+  
+  df <- as.data.frame(do.call(rbind, res))
+  #catch_summed <- df[order(df$COMMON, df$YEAR),]
+  
   catch_summed <- catch %>%
-    #filter(ST == state) %>%
     group_by(COMMON, YEAR, WAVE) %>%
     summarise(
       sum_totcat = sum(TOT_CAT, na.rm = TRUE),
@@ -139,9 +154,25 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       .groups = "drop"
     )
   
+  res <- by(catch_summed, list(catch_summed$COMMON, catch_summed$WAVE), function(x) {
+    #if (nrow(x) > 1000) {
+    c(
+      COMMON = unique(x$COMMON),
+      WAVE = unique(x$WAVE),
+      mean_catch = mean(x$sum_totcat, na.rm = TRUE),
+      sd_catch = sd(x$sum_totcat, na.rm = TRUE),
+      mean_catch_l = mean(x$sum_land, na.rm = TRUE),
+      sd_catch_l = sd(x$sum_land, na.rm = TRUE),
+      mean_catch_r = mean(x$sum_rel, na.rm = TRUE),
+      sd_catch_r = sd(x$sum_rel, na.rm = TRUE),
+      n = nrow(x))
+  }
+  )
+  df <- as.data.frame(do.call(rbind, res))
+  #totcat_stats <- df[order(df$COMMON, df$WAVE),]
+  
   # Group by relevant columns and calculate sample size n, mean, and std dev
   totcat_stats <- catch_summed %>%
-    #filter(YEAR >= styr & YEAR <= endyr) %>% #do we need this filter?
     group_by(COMMON, WAVE) %>%
     summarise(
       mean_catch = mean(sum_totcat, na.rm = TRUE),
@@ -291,7 +322,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     dev.off() # closes the PDF device
   
   ##################EFFORT
-  effortall <- bind_rows(lapply(data, "[[", 2))
+  effortall <- do.call(rbind, lapply(data, "[[", 2))
   
   effplot <- function(wavenum) {
     p <- effortall %>% filter(WAVE==wavenum) %>%
