@@ -78,7 +78,6 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
 #' @import dplyr
 #' @importFrom tidyr complete
 #' @importFrom RCurl getURL
-#' @importFrom stringr str_extract
 #' @importFrom archive archive_read
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
@@ -86,8 +85,10 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
 mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state) {
   url <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
   filenames <- paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
-  filenames <- stringr::str_extract(filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))], "mr[a-z0-9_]*[.][a-z]*")
-  yrs <- stringr::str_extract(filenames, "[0-9]{4}(_[0-9]{4})*")
+  #filenames <- stringr::str_extract(filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))], "mr[a-z0-9_]*[.][a-z]*")
+  filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))])
+  #yrs <- stringr::str_extract(filenames, "[0-9]{4}(_[0-9]{4})*")
+  yrs <- regmatches(fullnames, regexpr("[0-9]{4}(_[0-9]{4})*", fullnames))
   yrs <- sapply(sapply(yrs, strsplit, split = "_"), as.integer)
   yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
   
