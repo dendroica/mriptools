@@ -4,7 +4,7 @@
 # subsets to just your state's data #need same number of columns for this to work
 # need same number of columns for this to work
 readcatch <- function(x, xfile=NULL, state, species, waves) {
-  if (length(grep("z", x))) {
+  if (length(grep("zip", x))) {
     filen <- archive::archive_read(x, file = xfile)
   } else {
     filen <- x
@@ -31,7 +31,7 @@ readcatch <- function(x, xfile=NULL, state, species, waves) {
       #UPPER_ESTHARV = readr::col_integer(),
       #LANDING = readr::col_integer(),
       #LAND_VAR = readr::col_integer(),
-      LOWER_LANDING = readr::col_integer(), 
+      #LOWER_LANDING = readr::col_integer(), 
       SP_CODE = readr::col_character(), #, #UPPER_LANDING = readr::col_integer(),
       #ESTREL = readr::col_integer(),
       ESTRLVAR = readr::col_integer(), LOWER_ESTREL = readr::col_integer(), UPPER_ESTREL = readr::col_integer()#,
@@ -43,7 +43,7 @@ readcatch <- function(x, xfile=NULL, state, species, waves) {
       #LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(), 
     ), lazy=T
   )
-  C.tmp <- C.tmp %>% filter(ST == state & COMMON %in% species & WAVE %in% waves) #& AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$COMMON %in% species & C.tmp$WAVE %in% waves,] #& AREA_X_F %in% areas & MODE_FX_F %in% modes)
   names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
@@ -55,7 +55,7 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
     filen <- x
   }
   C.tmp <- readr::read_csv(filen, na = "", lazy=T)
-  C.tmp <- C.tmp %>% filter(ST == state & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$WAVE %in% waves & C.tmp$AREA_X_F %in% areas & C.tmp$MODE_FX_F %in% modes,]
   names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
 }
@@ -124,6 +124,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # 2nd level: 1 - catch, 2 - effort
 
   catchall <- do.call(rbind, lapply(data, "[[", 1))
+  catchall$LOWER_LANDING <- as.numeric(gsub("," ,"", catchall$LOWER_LANDING))
   
   catch_prelim <- catchall[catchall$YEAR == y_prelim,]
   catch <- catchall[catchall$YEAR %in% styr:endyr, ]
@@ -140,19 +141,20 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
         sum_land = sum(x$LANDING, na.rm = TRUE),
         sum_rel = sum(x$ESTREL, na.rm = TRUE))
     }
-) #PICK BACK UP HERE...COMES OUT AS CHAR
+) #PICK BACK UP HERE 6/27/25...COMES OUT AS CHAR
   
   df <- as.data.frame(do.call(rbind, res))
-  #catch_summed <- df[order(df$COMMON, df$YEAR),]
+  df[,2:6] <- sapply(df[,2:6], as.numeric)
+  catch_summed <- df[order(df$COMMON, df$YEAR),]
   
-  catch_summed <- catch %>%
-    group_by(COMMON, YEAR, WAVE) %>%
-    summarise(
-      sum_totcat = sum(TOT_CAT, na.rm = TRUE),
-      sum_land = sum(LANDING, na.rm = TRUE),
-      sum_rel = sum(ESTREL, na.rm = TRUE),
-      .groups = "drop"
-    )
+  #catch_summed <- catch %>%
+  #  group_by(COMMON, YEAR, WAVE) %>%
+  #  summarise(
+  #    sum_totcat = sum(TOT_CAT, na.rm = TRUE),
+  #    sum_land = sum(LANDING, na.rm = TRUE),
+  #    sum_rel = sum(ESTREL, na.rm = TRUE),
+  #    .groups = "drop"
+  #  )
   
   res <- by(catch_summed, list(catch_summed$COMMON, catch_summed$WAVE), function(x) {
     #if (nrow(x) > 1000) {
@@ -169,35 +171,50 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   }
   )
   df <- as.data.frame(do.call(rbind, res))
-  #totcat_stats <- df[order(df$COMMON, df$WAVE),]
+  df[,2:9] <- sapply(df[,2:9], as.numeric)
+  totcat_stats <- df[order(df$COMMON, df$WAVE),]
   
   # Group by relevant columns and calculate sample size n, mean, and std dev
-  totcat_stats <- catch_summed %>%
-    group_by(COMMON, WAVE) %>%
-    summarise(
-      mean_catch = mean(sum_totcat, na.rm = TRUE),
-      sd_catch = sd(sum_totcat, na.rm = TRUE),
-      mean_catch_l = mean(sum_land, na.rm = TRUE),
-      sd_catch_l = sd(sum_land, na.rm = TRUE),
-      mean_catch_r = mean(sum_rel, na.rm = TRUE),
-      sd_catch_r = sd(sum_rel, na.rm = TRUE),
-      n = n(), # Calculate sample size for each group
-      .groups = "drop"
-    )
+  #totcat_stats <- catch_summed %>%
+  #  group_by(COMMON, WAVE) %>%
+  #  summarise(
+  #    mean_catch = mean(sum_totcat, na.rm = TRUE),
+  #    sd_catch = sd(sum_totcat, na.rm = TRUE),
+  #    mean_catch_l = mean(sum_land, na.rm = TRUE),
+  #    sd_catch_l = sd(sum_land, na.rm = TRUE),
+  #    mean_catch_r = mean(sum_rel, na.rm = TRUE),
+  #    sd_catch_r = sd(sum_rel, na.rm = TRUE),
+  #    n = n(), # Calculate sample size for each group
+  #    .groups = "drop"
+  #  )
   
-    totcat_prelim <- catch_prelim %>%
+  res <- by(catch_prelim, list(catch_prelim$COMMON, catch_prelim$WAVE), function(x) {
+    #if (nrow(x) > 1000) {
+    c(
+      COMMON = unique(x$COMMON),
+      #YEAR = unique(x$YEAR),
+      WAVE = unique(x$WAVE),
+      sum_totcat = sum(x$TOT_CAT, na.rm = TRUE),
+      sum_land = sum(x$LANDING, na.rm = TRUE),
+      sum_rel = sum(x$ESTREL, na.rm = TRUE))
+  })
+  
+  df <- as.data.frame(do.call(rbind, res))
+  df[,2:5] <- sapply(df[,2:5], as.numeric)
+  totcat_prelim <- df[order(df$COMMON),]
+  
+    #totcat_prelim <- catch_prelim %>%
       #filter(ST==state) %>%
-      group_by(COMMON, WAVE) %>%
-      summarise(
-        sum_catch = sum(TOT_CAT, na.rm = TRUE),
-        sum_land = sum(LANDING, na.rm = TRUE),
-        sum_rel = sum(ESTREL, na.rm = TRUE),
-        .groups = 'drop'
-      )
+     # group_by(COMMON, WAVE) %>%
+    #  summarise(
+    #    sum_catch = sum(TOT_CAT, na.rm = TRUE),
+    #    sum_land = sum(LANDING, na.rm = TRUE),
+    #    sum_rel = sum(ESTREL, na.rm = TRUE),
+    #    .groups = 'drop'
+    #  )
     
     # Join 2024 data with calculated harvest_stats (mean, sd, and n) PICK UP HERE  JMGO
-    totcat <- totcat_prelim %>%
-      left_join(totcat_stats, by = c("COMMON", "WAVE"))
+    totcat <- merge(totcat_prelim, totcat_stats, by = c("COMMON", "WAVE"), all.x=T)
     
     ##### TOTAL CATCH COMPARISONS###### 
     
@@ -221,28 +238,28 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
       }
     }
     
-    totcat <- totcat %>%
-      rowwise() %>%
-      mutate(
-      outlier_CATCH = tau(n, sum_catch, mean_catch, sd_catch),
-      outlier_LAND = tau(n, sum_land, mean_catch_l, sd_catch_l),
-      outlier = tau(n, sum_rel, mean_catch_r, sd_catch_r))
+    totcat$outlier_CATCH <- mapply(tau, totcat$n, totcat$sum_totcat, totcat$mean_catch, totcat$sd_catch)
+    totcat$outlier_LAND <- mapply(tau, totcat$n, totcat$sum_land, totcat$mean_catch_l, totcat$sd_catch_l)
+    totcat$outlier <- mapply(tau, totcat$n, totcat$sum_rel, totcat$mean_catch_r, totcat$sd_catch_r)
+    
+    #totcat <- totcat %>%
+    #  rowwise() %>%
+    #  mutate(
+    #  outlier_CATCH = tau(n, sum_totcat, mean_catch, sd_catch),
+    #  outlier_LAND = tau(n, sum_land, mean_catch_l, sd_catch_l),
+    #  outlier = tau(n, sum_rel, mean_catch_r, sd_catch_r))
     
     # Filter the outliers
-    totcat_outliers <- totcat %>%
-      filter(outlier_CATCH == TRUE)
+    totcat_outliers <- totcat[totcat$outlier_CATCH == TRUE,]
     write.csv(totcat_outliers, "totcat_outliers.csv")
     
-    land_outliers <- totcat %>%
-      filter(outlier_LAND == TRUE)
+    land_outliers <- totcat[totcat$outlier_LAND == TRUE,]
     write.csv(land_outliers, "landings_outliers.csv")
     
-    rel_outliers <- totcat %>%
-      filter(outlier == TRUE)
+    rel_outliers <- totcat[totcat$outlier == TRUE,]
     write.csv(rel_outliers, "release_outliers.csv")
     
-    combined_catch <- catchall %>%
-      tidyr::complete(COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
+    combined_catch <- tidyr::complete(catchall, COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
     
     combined_catch$YEAR <- as.factor(combined_catch$YEAR)
     combined_catch$WAVE <- as.factor(combined_catch$WAVE)
@@ -255,8 +272,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     
     # set up total catch plot function
     totcatplot <- function(wavenum, species) {
-      p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
-        ggplot(aes(x = YEAR, y = TOT_CAT)) +
+      df <- combined_catch[combined_catch$COMMON==species & combined_catch$WAVE==wavenum,]
+      p <- 
+        ggplot(df, aes(x = YEAR, y = TOT_CAT)) +
         geom_point() +
         geom_errorbar(aes(ymin = LOWER_TOT_CAT, ymax = UPPER_TOT_CAT)) +
         labs(title = paste0(species, " WAVE ", wavenum, " TOTAL CATCH"), y = "Total Catch (numbers)") +
@@ -278,8 +296,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     # Graphing of landings
     # set up landings plot function
     landingplot <- function(wavenum, species) {
-      p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
-        ggplot(aes(x = YEAR, y = LANDING)) +
+      df <- combined_catch[combined_catch$COMMON==species & combined_catch$WAVE==wavenum,]
+      p <- 
+        ggplot(df, aes(x = YEAR, y = LANDING)) +
         geom_point() +
         geom_errorbar(aes(ymin = LOWER_LANDING, ymax = UPPER_LANDING)) +
         labs(title = paste0(species, " WAVE ", wavenum, " LANDINGS (A+B1)"), y = "Landings (numbers)") +
@@ -301,8 +320,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     # Graphing of releases
     # set up release plot function
     relplot <- function(wavenum, species) {
-      p <- combined_catch %>% filter(COMMON==species) %>% filter(WAVE==wavenum) %>%
-        ggplot(aes(x = YEAR, y = ESTREL)) +
+      df <- combined_catch[combined_catch$COMMON==species & combined_catch$WAVE==wavenum,]
+      p <- 
+        ggplot(df, aes(x = YEAR, y = ESTREL)) +
         geom_point() +
         geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
         labs(title = paste0(species, " WAVE ", wavenum, " Live Releases (B2)"), y = "Live Releases (numbers)") +
@@ -325,8 +345,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   effortall <- do.call(rbind, lapply(data, "[[", 2))
   
   effplot <- function(wavenum) {
-    p <- effortall %>% filter(WAVE==wavenum) %>%
-      ggplot(aes(x = YEAR, y = ESTRIPS)) +
+    df <- effortall[effortall$WAVE==wavenum,]
+    p <- 
+      ggplot(df, aes(x = YEAR, y = ESTRIPS)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
       labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
@@ -346,36 +367,49 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   effort_prelim <- effortall[effortall$YEAR == y_prelim,]
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
   
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  effort_stats <- effort %>%
-    #filter(YEAR >= styr & YEAR <= endyr) %>%
-    group_by(WAVE, MODE_FX_F, AREA_X_F) %>% #add year?
-    summarise(
-      mean_trips = mean(ESTRIPS, na.rm = TRUE),
-      sd_trips = sd(ESTRIPS, na.rm = TRUE),
-      n = n(), # Calculate sample size for each group
-      .groups = "drop",
-      #across(ESTRIPS)
-    )
+  res <- by(effort, list(effort$WAVE, effort$MODE_FX_F, effort$AREA_X_F), function(x) {
+    #if (nrow(x) > 1000) {
+    c(MODE_FX_F = unique(x$MODE_FX_F),
+      AREA_X_F = unique(x$AREA_X_F),
+      WAVE = unique(x$WAVE),
+      mean_trips = mean(x$ESTRIPS, na.rm = TRUE),
+      sd_trips = sd(x$ESTRIPS, na.rm = TRUE),
+      n = nrow(x))
+  }
+  )
   
-  trips <- effort_prelim %>% left_join(effort_stats, by = c("WAVE","MODE_FX_F","AREA_X_F"))
+  df <- as.data.frame(do.call(rbind, res))
+  df[,3:6] <- sapply(df[,3:6], as.numeric)
+  effort_stats <- df
+  # Group by relevant columns and calculate sample size n, mean, and std dev
+  #effort_stats <- effort %>%
+  #  group_by(WAVE, MODE_FX_F, AREA_X_F) %>% #add year?
+  #  summarise(
+  #    mean_trips = mean(ESTRIPS, na.rm = TRUE),
+  #    sd_trips = sd(ESTRIPS, na.rm = TRUE),
+  #    n = n(), # Calculate sample size for each group
+  #    .groups = "drop",
+  #  )
+  
+  trips <- merge(effort_prelim,effort_stats, by = c("WAVE","MODE_FX_F","AREA_X_F"), all.x=T)
   ##### Effort section
   # Apply the Thompson Tau calculation
-  trips <- trips %>%
-    rowwise() %>%
-    mutate(outlier = {
-      # Calculate tau critical value
-      if (n > 2) {
-        t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
-        tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
-        abs(ESTRIPS - mean_trips) / sd_trips > tau
-      } else {
-        FALSE # Not enough data to calculate outliers
-      }
-    })
   
-  effort_outliers <- trips %>%
-    filter(outlier == TRUE)
+  trips$outlier <- mapply(tau, trips$n, trips$ESTRIPS, trips$mean_trips, trips$sd_trips)
+  #trips <- trips %>%
+  #  rowwise() %>%
+  #  mutate(outlier = {
+      # Calculate tau critical value
+  #    if (n > 2) {
+  #      t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
+  #      tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
+  #      abs(ESTRIPS - mean_trips) / sd_trips > tau
+  #    } else {
+  #      FALSE # Not enough data to calculate outliers
+  #    }
+  #  })
+  
+  effort_outliers <- trips[trips$outlier == TRUE,]
   write.csv(effort_outliers, "effort_outliers.csv")
   
   #effortall <- rbind(effort, effort_prelim) #write back in filtering to only modes and areas of interest at read-in
