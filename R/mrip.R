@@ -80,7 +80,7 @@ readeffort <- function(filen, state, waves, areas, modes) {
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
-#' @param input (optional) point to locally downloaded MRIP files on your computer
+#' @param indir (optional) point to locally downloaded MRIP files on your computer
 #' @param outdir where your files should go
 #' @return Output files to explore the data with the parameters entered
 #' @export
@@ -88,16 +88,23 @@ readeffort <- function(filen, state, waves, areas, modes) {
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
 
-mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, input=NULL, outdir) {
+mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, indir=NULL, outdir) {
+  
+  myyrs <- c(styr:endyr, y_prelim)
+  
+  years <- function(filenames) {
+    yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
+    yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
+    names(yrs) <- filenames
+    yrs <- lapply(yrs, function(x) x[x %in% myyrs])
+    yrs <- Filter(length, yrs)
+  }
+  
+  if(is.null(indir)) {
   myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
   tmp <- readLines(myurl)
   filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
-  yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
-  yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
-  names(yrs) <- filenames
-  myyrs <- c(styr:endyr, y_prelim)
-  yrs <- lapply(yrs, function(x) x[x %in% myyrs])
-  yrs <- Filter(length, yrs)
+  yrs <- years(filenames)
   
   # Combine files for catch and effort estimates for the "bywave" files
   # Code modified from a loop written by Katie Drew (ASMFC)
@@ -135,7 +142,22 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   # now as it is, data is a nested list...
   # first level: year
   # 2nd level: 1 - catch, 2 - effort
+  
+  } else {
+    filenames <- list.files(indir)
+    yrs <- years(filenames)
+    data <- lapply(names(yrs), function(x) {
+      if (length(grep("catch", basename(x))) > 0) {
+        data <- readcatch(file.path(indir, x), state=state, species=species, waves=waves)
+      } else if(length(grep("effort", basename(x))) > 0) {
+        data <- readeffort(file.path(indir, x), state=state, waves=waves, areas=areas, modes=modes)
+      }
+    })
+    names(data) <- names(yrs)
+  }
+  
   data <- list(data[which(grepl("catch",names(data)))], data[which(grepl("effort",names(data)))])
+  
   catchall <- do.call(rbind, data[[1]])
   
   catch_prelim <- catchall[catchall$YEAR == y_prelim,]

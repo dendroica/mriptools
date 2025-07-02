@@ -13,7 +13,7 @@ mrip(
   areas,
   modes,
   state,
-  input = NULL,
+  indir = NULL,
   outdir
 )
 }
@@ -34,7 +34,7 @@ mrip(
 
 \item{state}{The FIPS code for the state of interest}
 
-\item{input}{(optional) point to locally downloaded MRIP files on your computer}
+\item{indir}{(optional) point to locally downloaded MRIP files on your computer}
 
 \item{outdir}{where your files should go}
 }

@@ -10,5 +10,5 @@ library(mriptools)
 mrip(styr=2017, endyr=2024, y_prelim=2025, 
      species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH", "COBIA", "DOLPHIN", "RED DRUM", "STRIPED BASS", "SUMMER FLOUNDER", "TAUTOG"), 
      waves=c(2,3,4,5,6), areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
-     modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), state=24, outdir="~/output/mrip_ex")
+     modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), state=24, indir=input, outdir="~/output/mrip_ex")
 
