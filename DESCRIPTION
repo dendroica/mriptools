@@ -22,5 +22,5 @@ Version: 0.0.1.0
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
-Depends: dplyr, ggplot2, readr
+Depends: ggplot2, readr
 Imports: tidyr, archive, RCurl
