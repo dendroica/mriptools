@@ -83,14 +83,13 @@ readeffort <- function(filen, state, waves, areas, modes) {
 #' @return Output files to explore the data with the parameters entered
 #' @export
 #' @import ggplot2
-#' @importFrom RCurl getURL
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
 
 mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, input=NULL) {
-  url <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
-  filenames <- paste(url, strsplit(RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE), "\r*\n")[[1]], sep = "")
-  filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))])
+  myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
+  tmp <- readLines(myurl)
+  filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
   yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
   yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
   names(yrs) <- filenames
@@ -104,7 +103,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     #x <- names(yrs)
     #y <- yrs
 
-  path <- paste0(url, x)
+  path <- paste0(myurl, x)
   print(path)
   if (tools::file_ext(x) == "zip") {
     temp <- tempfile()
