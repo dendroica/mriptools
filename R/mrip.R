@@ -294,7 +294,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     
     all_combinations <- expand.grid(
       COMMON = species,
-      YEAR = styr:(endyr + 1),
+      YEAR = myyrs,
       WAVE = waves,
       MODE_FX_F = modes,
       AREA_X_F = areas
