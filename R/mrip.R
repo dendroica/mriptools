@@ -95,42 +95,47 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', filenames[c(grep("zip", filenames), grep(".csv", filenames, fixed = TRUE))])
   yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
   yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
+  names(yrs) <- filenames
+  myyrs <- c(styr:endyr, y_prelim)
+  yrs <- lapply(yrs, function(x) x[x %in% myyrs])
+  yrs <- Filter(length, yrs)
   
   # Combine files for catch and effort estimates for the "bywave" files
   # Code modified from a loop written by Katie Drew (ASMFC)
-  data <- lapply(unique(c(styr:endyr, y_prelim)), function(y) {
-    yr <- which(sapply(yrs, function(x) {
-      y %in% x
-    }))
-    data1 <- lapply(
-      filenames[yr],
-      function(x) {
-        path <- paste0(url, x)
-        print(path)
-        if (length(grep("z", x)) > 0) {
-          if (length(grep("ca", x)) > 0) {
-            file <- paste0("mrip_catch_bywave_", y, ".csv")
-            data <- readcatch(path, file, state, species, waves)
-          } else {
-            file <- paste0("mrip_effort_bywave_", y, ".csv")
-            data <- readeffort(path, file, state, waves, areas, modes)
-        }} else {
-          if (length(grep("ca", x)) > 0) {
-            data <- readcatch(path, state=state, species=species, waves=waves)
-          } else {
-            data <- readeffort(path, state=state, waves=waves, areas=areas, modes=modes)
-          }
-        }
-      }
-    )
-    return(data1)
-  })
+  data <- Map(function(x,y) {
+    #x <- names(yrs)
+    #y <- yrs
+
+  path <- paste0(url, x)
+  print(path)
+  if (tools::file_ext(x) == "zip") {
+    #temp <- tempfile()
+    #download.file(path,temp)
+    if (length(grep("ca", x)) > 0) {
+      data <- do.call(rbind, lapply(y, function(y) {
+        file <- paste0("mrip_catch_bywave_", y, ".csv")
+        data <- readcatch(path, file, state, species, waves)
+      }))
+      } else {
+        data <- do.call(rbind, lapply(y, function(y) {
+          file <- paste0("mrip_effort_bywave_", y, ".csv")
+          data <- readeffort(path, file, state, waves, areas, modes)}))
+     }
+    #unlink(temp)
+   } else {
+    if (length(grep("ca", x)) > 0) {
+      data <- readcatch(path, state=state, species=species, waves=waves)
+    } else {
+      data <- readeffort(path, state=state, waves=waves, areas=areas, modes=modes)
+    }
+  }
+  return(data)}, names(yrs), yrs)
 
   # now as it is, data is a nested list...
   # first level: year
   # 2nd level: 1 - catch, 2 - effort
-
-  catchall <- do.call(rbind, lapply(data, "[[", 1))
+  data <- list(data[which(grepl("catch",names(data)))], data[which(grepl("effort",names(data)))])
+  catchall <- do.call(rbind, data[[1]])
   
   catch_prelim <- catchall[catchall$YEAR == y_prelim,]
   catch <- catchall[catchall$YEAR %in% styr:endyr, ]
@@ -347,7 +352,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     dev.off() # closes the PDF device
   
   ##################EFFORT
-  effortall <- do.call(rbind, lapply(data, "[[", 2))
+  effortall <- do.call(rbind, data[[2]])
   
   effplot <- function(wavenum) {
     df <- effortall[effortall$WAVE==wavenum,]
