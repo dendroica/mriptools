@@ -2,7 +2,6 @@
 
 export(mrip)
 import(ggplot2)
-import(readr)
 importFrom(RCurl,getURL)
 importFrom(archive,archive_read)
 importFrom(tidyr,complete)
