@@ -75,7 +75,6 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
 #' @export
 #' @import ggplot2
 #' @import readr
-#' @import dplyr
 #' @importFrom tidyr complete
 #' @importFrom RCurl getURL
 #' @importFrom archive archive_read
@@ -204,7 +203,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   totcat_prelim <- df[order(df$COMMON),]
   
     #totcat_prelim <- catch_prelim %>%
-      #filter(ST==state) %>%
      # group_by(COMMON, WAVE) %>%
     #  summarise(
     #    sum_catch = sum(TOT_CAT, na.rm = TRUE),

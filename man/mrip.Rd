@@ -4,7 +4,17 @@
 \alias{mrip}
 \title{MRIP Outlier}
 \usage{
-mrip(styr, endyr, y_prelim = NA, species, waves, areas, modes, state)
+mrip(
+  styr,
+  endyr,
+  y_prelim = NA,
+  species,
+  waves,
+  areas,
+  modes,
+  state,
+  input = NULL
+)
 }
 \arguments{
 \item{styr}{Start year}
