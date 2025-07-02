@@ -1,7 +1,6 @@
 #devtools::install_github("dendroica/mriptools")
 #devtools::update_packages("mriptools")
 library(mriptools)
-setwd("~/output/mrip_ex")
 #set the FIPS code for your state
 #GA=13, SC=45, NC=37, VA=51, MD=24, DE=10, NJ=34, NY=36, CT=9, RI=44, MA=25, NH=33, ME=23
 
@@ -11,7 +10,5 @@ setwd("~/output/mrip_ex")
 mrip(styr=2017, endyr=2024, y_prelim=2025, 
      species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH", "COBIA", "DOLPHIN", "RED DRUM", "STRIPED BASS", "SUMMER FLOUNDER", "TAUTOG"), 
      waves=c(2,3,4,5,6), areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
-     modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), state=24)
-
-#ctach <- readcatch("C:\\Users\\jgorzo\\OneDrive - New Jersey Office of Information Technology\\Documents\\data\\MRIP\\mrip_catch_bywave_2023.csv", state=state, species=species, waves=waves)
+     modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), state=24, outdir="~/output/mrip_ex")
 

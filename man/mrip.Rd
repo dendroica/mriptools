@@ -13,7 +13,8 @@ mrip(
   areas,
   modes,
   state,
-  input = NULL
+  input = NULL,
+  outdir
 )
 }
 \arguments{
@@ -32,6 +33,10 @@ mrip(
 \item{modes}{Modes of fishing}
 
 \item{state}{The FIPS code for the state of interest}
+
+\item{input}{(optional) point to locally downloaded MRIP files on your computer}
+
+\item{outdir}{where your files should go}
 }
 \value{
 Output files to explore the data with the parameters entered

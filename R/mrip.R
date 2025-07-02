@@ -80,13 +80,15 @@ readeffort <- function(filen, state, waves, areas, modes) {
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
+#' @param input (optional) point to locally downloaded MRIP files on your computer
+#' @param outdir where your files should go
 #' @return Output files to explore the data with the parameters entered
 #' @export
 #' @import ggplot2
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
 
-mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, input=NULL) {
+mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, input=NULL, outdir) {
   myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
   tmp <- readLines(myurl)
   filenames <- gsub('.*(mr[a-z0-9_]*[.][a-z]{3}).*','\\1', tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
@@ -260,13 +262,13 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     
     # Filter the outliers
     totcat_outliers <- totcat[totcat$outlier_CATCH == TRUE,]
-    write.csv(totcat_outliers, "totcat_outliers.csv")
+    write.csv(totcat_outliers, file.path(outdir, "totcat_outliers.csv"))
     
     land_outliers <- totcat[totcat$outlier_LAND == TRUE,]
-    write.csv(land_outliers, "landings_outliers.csv")
+    write.csv(land_outliers, file.path(outdir, "landings_outliers.csv"))
     
     rel_outliers <- totcat[totcat$outlier == TRUE,]
-    write.csv(rel_outliers, "release_outliers.csv")
+    write.csv(rel_outliers, file.path(outdir, "release_outliers.csv"))
     
     all_combinations <- expand.grid(
       COMMON = species,
@@ -310,7 +312,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     }
     
     # Loops through each species and produces a graph for each wave
-    pdf("Total Catch.pdf")
+    pdf(file.path(outdir, "Total Catch.pdf"))
     for (s in species) {
       for (w in waves) {
         totcatplot(w, s)
@@ -334,7 +336,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     }
     
     # Loops through each species and produces a graph for each wave
-    pdf("Landings.pdf")
+    pdf(file.path(outdir, "Landings.pdf"))
     for (s in species) {
       for (w in waves) {
         landingplot(w, s)
@@ -358,7 +360,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     }
     
     # Loops through each species and produces a graph for each wave
-    pdf("Releases.pdf")
+    pdf(file.path(outdir, "Releases.pdf"))
     for (s in species) {
       for (w in waves) {
         relplot(w, s)
@@ -383,7 +385,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   }
   
   # Loops through each species and produces a graph for each wave
-  pdf("EstTrips.pdf")
+  pdf(file.path(outdir, "EstTrips.pdf"))
   for (w in waves) {
     effplot(w)
   }
@@ -435,7 +437,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   #  })
   
   effort_outliers <- trips[trips$outlier == TRUE,]
-  write.csv(effort_outliers, "effort_outliers.csv")
+  write.csv(effort_outliers, file.path(outdir, "effort_outliers.csv"))
   
   #effortall <- rbind(effort, effort_prelim) #write back in filtering to only modes and areas of interest at read-in
   # Graphing of effort
