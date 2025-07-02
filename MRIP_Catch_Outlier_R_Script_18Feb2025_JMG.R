@@ -14,3 +14,4 @@ mrip(styr=2017, endyr=2024, y_prelim=2025,
      modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), state=24)
 
 #ctach <- readcatch("C:\\Users\\jgorzo\\OneDrive - New Jersey Office of Information Technology\\Documents\\data\\MRIP\\mrip_catch_bywave_2023.csv", state=state, species=species, waves=waves)
+

@@ -3,12 +3,12 @@
 # Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
 # subsets to just your state's data #need same number of columns for this to work
 # need same number of columns for this to work
-readcatch <- function(x, xfile=NULL, state, species, waves) {
-  if (length(grep("zip", x))) {
-    filen <- archive::archive_read(x, file = xfile)
-  } else {
-    filen <- x
-  }
+readcatch <- function(filen, state, species, waves) {
+  #if (length(grep("zip", x))) {
+  #  filen <- archive::archive_read(x, file = xfile)
+  #} else {
+  #  filen <- x
+  #}
   C.tmp <- read.csv(filen, colClasses=c("SP_CODE"="character"))
     #readr::read_csv(filen,
     #na = "",
@@ -53,12 +53,12 @@ readcatch <- function(x, xfile=NULL, state, species, waves) {
   return(C.tmp)
 }
 
-readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
-  if (length(grep("z", x))) {
-    filen <- archive::archive_read(x, file = xfile)
-  } else {
-    filen <- x
-  }
+readeffort <- function(filen, state, waves, areas, modes) {
+  #if (length(grep("z", x))) {
+  #  filen <- archive::archive_read(x, file = xfile)
+  #} else {
+  #  filen <- x
+  #}
   C.tmp <- read.csv(filen)
   numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
@@ -85,7 +85,6 @@ readeffort <- function(x, xfile=NULL, state, waves, areas, modes) {
 #' @import ggplot2
 #' @importFrom tidyr complete
 #' @importFrom RCurl getURL
-#' @importFrom archive archive_read
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
 
@@ -109,19 +108,21 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   path <- paste0(url, x)
   print(path)
   if (tools::file_ext(x) == "zip") {
-    #temp <- tempfile()
-    #download.file(path,temp)
+    temp <- tempfile()
+    temp2 <- tempfile()
+    download.file(path, temp)
+    unzip(zipfile = temp, exdir = temp2)
     if (length(grep("ca", x)) > 0) {
       data <- do.call(rbind, lapply(y, function(y) {
         file <- paste0("mrip_catch_bywave_", y, ".csv")
-        data <- readcatch(path, file, state, species, waves)
+        data <- readcatch(file.path(temp2, file), state, species, waves)
       }))
       } else {
-        data <- do.call(rbind, lapply(y, function(y) {
+      data <- do.call(rbind, lapply(y, function(y) {
           file <- paste0("mrip_effort_bywave_", y, ".csv")
-          data <- readeffort(path, file, state, waves, areas, modes)}))
+          data <- readeffort(file.path(temp2, file), state, waves, areas, modes)}))
      }
-    #unlink(temp)
+    unlink(c(temp, temp2))
    } else {
     if (length(grep("ca", x)) > 0) {
       data <- readcatch(path, state=state, species=species, waves=waves)
