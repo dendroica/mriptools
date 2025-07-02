@@ -83,7 +83,6 @@ readeffort <- function(filen, state, waves, areas, modes) {
 #' @return Output files to explore the data with the parameters entered
 #' @export
 #' @import ggplot2
-#' @importFrom tidyr complete
 #' @importFrom RCurl getURL
 #' @examples
 #' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
@@ -270,7 +269,23 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     rel_outliers <- totcat[totcat$outlier == TRUE,]
     write.csv(rel_outliers, "release_outliers.csv")
     
-    combined_catch <- tidyr::complete(catchall, COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
+    all_combinations <- expand.grid(
+      COMMON = species,
+      YEAR = styr:(endyr + 1),
+      WAVE = waves,
+      MODE_FX_F = modes,
+      AREA_X_F = areas
+    )
+    
+    # Merge with the original data frame
+    combined_catch <- merge(all_combinations, catchall, all.x = TRUE)
+    
+    # Optionally, replace NA values with 0
+    #merged_df$value[is.na(merged_df$value)] <- 0
+    
+    #print(merged_df)
+    
+    #combined_catch <- tidyr::complete(catchall, COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
     
     combined_catch$YEAR <- as.factor(combined_catch$YEAR)
     combined_catch$WAVE <- as.factor(combined_catch$WAVE)

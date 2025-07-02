@@ -23,4 +23,4 @@ License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 Depends: ggplot2
-Imports: tidyr, RCurl
+Imports: RCurl

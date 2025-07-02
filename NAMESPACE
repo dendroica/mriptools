@@ -3,4 +3,3 @@
 export(mrip)
 import(ggplot2)
 importFrom(RCurl,getURL)
-importFrom(tidyr,complete)
