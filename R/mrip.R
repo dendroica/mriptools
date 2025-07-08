@@ -156,7 +156,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
             data <- readcatch(file.path(temp2, y), state, species, waves)
           })
           )
-          names(data) <- files
+          #names(data) <- files
         } else if (length(grep("mrip_effort_bywave_", x))) {
           files <- sapply(y, function(a) {paste0("mrip_effort_bywave_", y, ".csv")})
           data <- do.call(rbind, 
