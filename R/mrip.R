@@ -119,46 +119,69 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     temp2 <- tempfile()
     download.file(path, temp)
     unzip(zipfile = temp, exdir = temp2)
-    if (length(grep("ca", x)) > 0) {
+    if (length(grep("mrip_catch_bywave_", x)) > 0) {
       data <- do.call(rbind, lapply(y, function(y) {
         file <- paste0("mrip_catch_bywave_", y, ".csv")
         data <- readcatch(file.path(temp2, file), state, species, waves)
       }))
-      } else {
+      } else if (length(grep("mrip_effort_bywave_", x))) {
       data <- do.call(rbind, lapply(y, function(y) {
           file <- paste0("mrip_effort_bywave_", y, ".csv")
           data <- readeffort(file.path(temp2, file), state, waves, areas, modes)}))
      }
     unlink(c(temp, temp2))
    } else {
-    if (length(grep("ca", x)) > 0) {
+    if (length(grep("mrip_catch_bywave_", x)) > 0) {
       data <- readcatch(path, state=state, species=species, waves=waves)
-    } else {
+    } else if (length(grep("mrip_effort_bywave_", x))) {
       data <- readeffort(path, state=state, waves=waves, areas=areas, modes=modes)
     }
   }
   return(data)}, names(yrs), yrs)
-
-  # now as it is, data is a nested list...
-  # first level: year
-  # 2nd level: 1 - catch, 2 - effort
   
   } else {
     filenames <- list.files(indir)
     yrs <- years(filenames)
-    data <- lapply(names(yrs), function(x) {
-      if (length(grep("catch", basename(x))) > 0) {
-        data <- readcatch(file.path(indir, x), state=state, species=species, waves=waves)
-      } else if(length(grep("effort", basename(x))) > 0) {
-        data <- readeffort(file.path(indir, x), state=state, waves=waves, areas=areas, modes=modes)
+    
+    data <- Map(function(x,y) {
+      if (tools::file_ext(x) == "zip") {
+        #temp <- tempfile()
+        temp2 <- tempfile()
+        #download.file(path, temp)
+        unzip(zipfile = file.path(indir,x), exdir = temp2)
+        if (length(grep("mrip_catch_bywave_", x)) > 0) {
+          files <- sapply(y, function(a) {paste0("mrip_catch_bywave_", a, ".csv")})
+          data <- do.call(rbind, 
+                          lapply(files, function(y) {
+            data <- readcatch(file.path(temp2, y), state, species, waves)
+          })
+          )
+          names(data) <- files
+        } else if (length(grep("mrip_effort_bywave_", x))) {
+          files <- sapply(y, function(a) {paste0("mrip_effort_bywave_", y, ".csv")})
+          data <- do.call(rbind, 
+                          lapply(files, function(y) {
+            data <- readeffort(file.path(temp2, y), state, waves, areas, modes)})
+            )
+          names(data) <- files
+        }
+        unlink(c(temp2))
+      } else {
+        file <- x
+        if (length(grep("mrip_catch_bywave_", x)) > 0) {
+          data <- readcatch(file.path(indir, x), state=state, species=species, waves=waves)
+        } else if (length(grep("mrip_effort_bywave_", x))) {
+          data <- readeffort(file.path(indir, x), state=state, waves=waves, areas=areas, modes=modes)
+        }
       }
-    })
+      return(data)}, names(yrs), yrs) 
     names(data) <- names(yrs)
-  }
+  } 
   
-  data <- list(data[which(grepl("catch",names(data)))], data[which(grepl("effort",names(data)))])
+  data <- list(data[which(grepl("mrip_catch_bywave",names(data)))], data[which(grepl("mrip_effort_bywave",names(data)))])
   
   catchall <- do.call(rbind, data[[1]])
+  catchall <- catchall[!duplicated(catchall),]
   
   catch_prelim <- catchall[catchall$YEAR == y_prelim,]
   catch <- catchall[catchall$YEAR %in% styr:endyr, ]
@@ -175,7 +198,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
         sum_land = sum(x$LANDING, na.rm = TRUE),
         sum_rel = sum(x$ESTREL, na.rm = TRUE))
     }
-) #PICK BACK UP HERE 6/27/25...COMES OUT AS CHAR
+) 
   
   df <- as.data.frame(do.call(rbind, res))
   df[,2:6] <- sapply(df[,2:6], as.numeric)
@@ -392,6 +415,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   
   ##################EFFORT
   effortall <- do.call(rbind, data[[2]])
+  effortall <- effortall[!duplicated(effortall),]
   
   effplot <- function(wavenum) {
     df <- effortall[effortall$WAVE==wavenum,]
