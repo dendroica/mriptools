@@ -1,75 +1,4 @@
-# catch data
-# switched to readr::read_csv rather than read.csv due to issues setting catch estimates with commas in them to numeric values
-# Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
-# subsets to just your state's data #need same number of columns for this to work
-# need same number of columns for this to work
-readcatch <- function(filen, state, species, waves) {
-  # if (length(grep("zip", x))) {
-  #  filen <- archive::archive_read(x, file = xfile)
-  # } else {
-  #  filen <- x
-  # }
-  C.tmp <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
-  # readr::read_csv(filen,
-  # na = "",
-  # col_types = readr::cols(
-  # LAND_VAR = readr::col_number(),
-  # ALT_FLAG = readr::col_integer(),
-  # YEAR = readr::col_integer(),
-  # WAVE = readr::col_integer(),
-  # SUB_REG = readr::col_integer(),
-  # ST = readr::col_integer(),
-  # MODE_FX = readr::col_integer(),
-  # AREA_X = readr::col_integer(),
-  # ESTCLAIM = readr::col_integer(),
-  # ESTCLVAR = readr::col_integer(),
-  # LOWER_ESTCLAIM = readr::col_integer(),
-  # UPPER_ESTCLAIM = readr::col_integer(),
-  # PC_ESTCLAIM_IMP=readr::col_integer(),
-  # ESTHARV = readr::col_integer(),
-  # ESTHVAR = readr::col_integer(),
-  # LOWER_ESTHARV = readr::col_integer(),
-  # UPPER_ESTHARV = readr::col_integer(),
-  # LANDING = readr::col_integer(),
-  # LAND_VAR = readr::col_integer(),
-  # LOWER_LANDING = readr::col_integer(),
-  # SP_CODE = readr::col_character(), #, #UPPER_LANDING = readr::col_integer(),
-  # ESTREL = readr::col_integer(),
-  # ESTRLVAR = readr::col_integer(), LOWER_ESTREL = readr::col_integer(), UPPER_ESTREL = readr::col_integer()#,
-  # TOT_VAR = readr::col_integer(), UPPER_TOT_CAT = readr::col_integer(), LBS_AB1 = readr::col_integer(),
-  # VAR_LBS = readr::col_integer(), LOWER_LBS_AB1 = readr::col_integer(), UPPER_LBS_AB1 = readr::col_integer(),
-  # WGT_AB1 = readr::col_integer(), VAR_WAB1 = readr::col_integer(), LOWER_WGT_AB1 = readr::col_integer(),
-  # UPPER_WGT_AB1 = readr::col_integer(), TOT_LEN = readr::col_integer(),
-  # VARTOLEN=readr::col_integer(),
-  # LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(),
-  # ), lazy=T
-  # )
-
-  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
-  numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
-  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
-  names(C.tmp) <- toupper(names(C.tmp))
-  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$COMMON %in% species & C.tmp$WAVE %in% waves, ] # & AREA_X_F %in% areas & MODE_FX_F %in% modes)
-  return(C.tmp)
-}
-
-readeffort <- function(filen, state, waves, areas, modes) {
-  # if (length(grep("z", x))) {
-  #  filen <- archive::archive_read(x, file = xfile)
-  # } else {
-  #  filen <- x
-  # }
-  C.tmp <- read.csv(filen)
-  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
-  numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
-  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
-
-  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$WAVE %in% waves & C.tmp$AREA_X_F %in% areas & C.tmp$MODE_FX_F %in% modes, ]
-  names(C.tmp) <- toupper(names(C.tmp))
-  return(C.tmp)
-}
-
-#' MRIP Data Visualization
+#' MRIP data visualization
 #'
 #' Plots of data over the time span
 #' @param combined_catch this is the data frame of all of the catch data within the time period of interest
@@ -507,4 +436,75 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   write.csv(effort_outliers, file.path(outdir, "effort_outliers.csv"))
 
   makeplots(combined_catch, effortall, species, waves, outdir)
+}
+
+#' catch data
+#'
+#' Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
+#' subsets to just your state's data #need same number of columns for this to work
+#' need same number of columns for this to work
+readcatch <- function(filen, state, species, waves) {
+  # if (length(grep("zip", x))) {
+  #  filen <- archive::archive_read(x, file = xfile)
+  # } else {
+  #  filen <- x
+  # }
+  C.tmp <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
+  # readr::read_csv(filen,
+  # na = "",
+  # col_types = readr::cols(
+  # LAND_VAR = readr::col_number(),
+  # ALT_FLAG = readr::col_integer(),
+  # YEAR = readr::col_integer(),
+  # WAVE = readr::col_integer(),
+  # SUB_REG = readr::col_integer(),
+  # ST = readr::col_integer(),
+  # MODE_FX = readr::col_integer(),
+  # AREA_X = readr::col_integer(),
+  # ESTCLAIM = readr::col_integer(),
+  # ESTCLVAR = readr::col_integer(),
+  # LOWER_ESTCLAIM = readr::col_integer(),
+  # UPPER_ESTCLAIM = readr::col_integer(),
+  # PC_ESTCLAIM_IMP=readr::col_integer(),
+  # ESTHARV = readr::col_integer(),
+  # ESTHVAR = readr::col_integer(),
+  # LOWER_ESTHARV = readr::col_integer(),
+  # UPPER_ESTHARV = readr::col_integer(),
+  # LANDING = readr::col_integer(),
+  # LAND_VAR = readr::col_integer(),
+  # LOWER_LANDING = readr::col_integer(),
+  # SP_CODE = readr::col_character(), #, #UPPER_LANDING = readr::col_integer(),
+  # ESTREL = readr::col_integer(),
+  # ESTRLVAR = readr::col_integer(), LOWER_ESTREL = readr::col_integer(), UPPER_ESTREL = readr::col_integer()#,
+  # TOT_VAR = readr::col_integer(), UPPER_TOT_CAT = readr::col_integer(), LBS_AB1 = readr::col_integer(),
+  # VAR_LBS = readr::col_integer(), LOWER_LBS_AB1 = readr::col_integer(), UPPER_LBS_AB1 = readr::col_integer(),
+  # WGT_AB1 = readr::col_integer(), VAR_WAB1 = readr::col_integer(), LOWER_WGT_AB1 = readr::col_integer(),
+  # UPPER_WGT_AB1 = readr::col_integer(), TOT_LEN = readr::col_integer(),
+  # VARTOLEN=readr::col_integer(),
+  # LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(),
+  # ), lazy=T
+  # )
+  
+  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
+  numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
+  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
+  names(C.tmp) <- toupper(names(C.tmp))
+  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$COMMON %in% species & C.tmp$WAVE %in% waves, ] # & AREA_X_F %in% areas & MODE_FX_F %in% modes)
+  return(C.tmp)
+}
+
+readeffort <- function(filen, state, waves, areas, modes) {
+  # if (length(grep("z", x))) {
+  #  filen <- archive::archive_read(x, file = xfile)
+  # } else {
+  #  filen <- x
+  # }
+  C.tmp <- read.csv(filen)
+  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
+  numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
+  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
+  
+  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$WAVE %in% waves & C.tmp$AREA_X_F %in% areas & C.tmp$MODE_FX_F %in% modes, ]
+  names(C.tmp) <- toupper(names(C.tmp))
+  return(C.tmp)
 }
