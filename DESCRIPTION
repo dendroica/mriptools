@@ -18,7 +18,7 @@ Authors@R:
            family = "Franco",
            role = "aut"))
 Maintainer:  Jessica M. Gorzo <jessica.gorzo@dep.nj.gov>
-Version: 0.0.1.0
+Version: 0.0.3.0
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
