@@ -139,16 +139,6 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
 
   # Apply the Thompson Tau calculation
 
-  tau <- function(n, sum_catch, mean_catch, sd_catch) {
-    if (n > 2) {
-      t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
-      tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
-      abs(sum_catch - mean_catch) / sd_catch > tau
-    } else {
-      FALSE # Not enough data to calculate outliers
-    }
-  }
-
   totcat$outlier_CATCH <- mapply(tau, totcat$n, totcat$sum_totcat, totcat$mean_catch, totcat$sd_catch)
   totcat$outlier_LAND <- mapply(tau, totcat$n, totcat$sum_land, totcat$mean_catch_l, totcat$sd_catch_l)
   totcat$outlier <- mapply(tau, totcat$n, totcat$sum_rel, totcat$mean_catch_r, totcat$sd_catch_r)
@@ -387,4 +377,14 @@ externalfile <- function(x, y, src, myurl=NA, state, species, waves, areas, mode
   }
   #print(data[1:5,1:10])
   return(data)
+}
+
+tau <- function(n, sum_catch, mean_catch, sd_catch) {
+  if (n > 2) {
+    t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
+    tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
+    abs(sum_catch - mean_catch) / sd_catch > tau
+  } else {
+    FALSE # Not enough data to calculate outliers
+  }
 }
