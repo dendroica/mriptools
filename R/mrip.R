@@ -346,13 +346,12 @@ externalfile <- function(x, y, src, myurl=NA, state, species, waves, areas, mode
     path <- file.path(src, x)
   }
   if (tools::file_ext(x) == "zip") {
+    temp <- tempfile()
+    temp2 <- tempfile()
     if(src=="remote") {
-      temp <- tempfile()
-      temp2 <- tempfile()
       download.file(path, temp)
       unzip(zipfile = temp, exdir = temp2) 
     } else {
-      temp2 <- tempfile()
       unzip(zipfile = path, exdir = temp2)
     }
     if (length(grep("mrip_catch_bywave_", x)) > 0) {
