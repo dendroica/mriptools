@@ -82,6 +82,10 @@ mrip <- function(
   print("catch data cleaned")
 
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
+  compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
+  groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
+  totcat_prelim <- aggregate(compute_subset, groupvar, sum)
+  
   catch <- catchall[catchall$YEAR %in% styr:endyr, ] # years for baseline/ave
 
   # For looking for outliers by species across the modes and areas
@@ -92,17 +96,9 @@ mrip <- function(
     sum
   )
   # names(res)[4:6] <- c("sum_totcat", "sum_land", "sum_rel")
-  compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
-
-  groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
-  totcat_prelim <- aggregate(
-    catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")],
-    groupvar,
-    sum
-  )
-
   # Join mripdata with calculated harvest_stats (mean, sd, and n)
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
+  compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
   outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"))
   # names(outliers) <- vats
   ##### TOTAL CATCH COMPARISONS######
