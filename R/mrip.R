@@ -14,164 +14,101 @@
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip(styr=2017, 
-#'   endyr=2024,
-#'   y_prelim=2025, 
-#'   species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH"), 
-#'   waves=c(2,3,4,5,6), 
-#'   areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
-#'   modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), 
-#'   state=24, 
-#'   outdir="~/output/mrip_ex")
-
-mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, indir = "remote", outdir) {
+#' mrip(
+#'   styr = 2017,
+#'   endyr = 2024,
+#'   y_prelim = 2025,
+#'   species = c("BLACK SEA BASS", "TAUTOG"),
+#'   waves = c(2, 3, 4, 5, 6),
+#'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
+#'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
+#'   state = 24,
+#'   outdir = "~/output/mrip_ex"
+#' )
+mrip <- function(
+    styr,
+    endyr,
+    y_prelim = NA,
+    species, waves,
+    areas,
+    modes,
+    state,
+    indir = "remote",
+    outdir) {
   myyrs <- c(styr:endyr, y_prelim)
 
   if (indir == "remote") {
     myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
     tmp <- readLines(myurl)
-    filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
+    fiels <- tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))]
+    filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", fiels)
     yrs <- years(filenames, myyrs)
     # function(x, y, src, myurl=NA, state, species, waves, areas, modes)
-    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = list(src = indir, myurl = myurl, state, species, waves, areas, modes))
+    vars <- list(
+      src = indir,
+      myurl = myurl,
+      state,
+      species,
+      waves,
+      areas,
+      modes
+    )
+    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = vars)
     print("download complete")
   } else {
     filenames <- list.files(indir)
     yrs <- years(filenames, myyrs)
-    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = list(src = indir, state = state, species = species, waves = waves, areas = areas, modes = modes))
+    vars <- list(
+      src = indir,
+      state = state,
+      species = species,
+      waves = waves,
+      areas = areas,
+      modes = modes
+    )
+    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = vars)
     names(mripdata) <- names(yrs)
     print("read in complete")
   }
 
-  mripdata <- list(mripdata[which(grepl("mrip_catch_bywave", names(mripdata)))], mripdata[which(grepl("mrip_effort_bywave", names(mripdata)))])
+  mripdata <- list(
+    mripdata[which(grepl("mrip_catch_bywave", names(mripdata)))],
+    mripdata[which(grepl("mrip_effort_bywave", names(mripdata)))]
+  )
   print("mrip data sorted")
   catchall <- do.call(rbind, mripdata[[1]])
   print("catch data compiled")
   catchall <- catchall[!duplicated(catchall), ]
   print("catch data cleaned")
 
-  catch_prelim <- catchall[catchall$YEAR == y_prelim, ]
-  catch <- catchall[catchall$YEAR %in% styr:endyr, ]
-  # For looking for outliers by species at the wave level, first need to collapse estimates
-  # across the modes and areas to get wave level estimates by species for each year
+  catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
+  catch <- catchall[catchall$YEAR %in% styr:endyr, ] # years for baseline/ave
 
-  res <- by(catch, list(catch$COMMON, catch$YEAR, catch$WAVE), function(x) {
-    # if (nrow(x) > 1000) {
-    c(
-      COMMON = unique(x$COMMON),
-      YEAR = unique(x$YEAR),
-      WAVE = unique(x$WAVE),
-      sum_totcat = sum(x$TOT_CAT, na.rm = TRUE),
-      sum_land = sum(x$LANDING, na.rm = TRUE),
-      sum_rel = sum(x$ESTREL, na.rm = TRUE)
-    )
-  })
+  # For looking for outliers by species across the modes and areas
+  # to get wave level estimates by species for each year
+  res <- aggregate(
+    catch[, c("TOT_CAT", "LANDING", "ESTREL")],
+    list(COMMON = catch$COMMON, YEAR = catch$YEAR, WAVE = catch$WAVE),
+    sum
+  )
+  # names(res)[4:6] <- c("sum_totcat", "sum_land", "sum_rel")
+  compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
 
-  df <- as.data.frame(do.call(rbind, res))
-  df[, 2:6] <- sapply(df[, 2:6], as.numeric)
-  catch_summed <- df[order(df$COMMON, df$YEAR), ]
+  groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
+  totcat_prelim <- aggregate(
+    catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")],
+    groupvar,
+    sum
+  )
 
-  # catch_summed <- catch %>%
-  #  group_by(COMMON, YEAR, WAVE) %>%
-  #  summarise(
-  #    sum_totcat = sum(TOT_CAT, na.rm = TRUE),
-  #    sum_land = sum(LANDING, na.rm = TRUE),
-  #    sum_rel = sum(ESTREL, na.rm = TRUE),
-  #    .groups = "drop"
-  #  )
-
-  res <- by(catch_summed, list(catch_summed$COMMON, catch_summed$WAVE), function(x) {
-    # if (nrow(x) > 1000) {
-    c(
-      COMMON = unique(x$COMMON),
-      WAVE = unique(x$WAVE),
-      mean_catch = mean(x$sum_totcat, na.rm = TRUE),
-      sd_catch = sd(x$sum_totcat, na.rm = TRUE),
-      mean_catch_l = mean(x$sum_land, na.rm = TRUE),
-      sd_catch_l = sd(x$sum_land, na.rm = TRUE),
-      mean_catch_r = mean(x$sum_rel, na.rm = TRUE),
-      sd_catch_r = sd(x$sum_rel, na.rm = TRUE),
-      n = nrow(x)
-    )
-  })
-  df <- as.data.frame(do.call(rbind, res))
-  df[, 2:9] <- sapply(df[, 2:9], as.numeric)
-  totcat_stats <- df[order(df$COMMON, df$WAVE), ]
-
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  # totcat_stats <- catch_summed %>%
-  #  group_by(COMMON, WAVE) %>%
-  #  summarise(
-  #    mean_catch = mean(sum_totcat, na.rm = TRUE),
-  #    sd_catch = sd(sum_totcat, na.rm = TRUE),
-  #    mean_catch_l = mean(sum_land, na.rm = TRUE),
-  #    sd_catch_l = sd(sum_land, na.rm = TRUE),
-  #    mean_catch_r = mean(sum_rel, na.rm = TRUE),
-  #    sd_catch_r = sd(sum_rel, na.rm = TRUE),
-  #    n = n(), # Calculate sample size for each group
-  #    .groups = "drop"
-  #  )
-
-  res <- by(catch_prelim, list(catch_prelim$COMMON, catch_prelim$WAVE), function(x) {
-    # if (nrow(x) > 1000) {
-    c(
-      COMMON = unique(x$COMMON),
-      # YEAR = unique(x$YEAR),
-      WAVE = unique(x$WAVE),
-      sum_totcat = sum(x$TOT_CAT, na.rm = TRUE),
-      sum_land = sum(x$LANDING, na.rm = TRUE),
-      sum_rel = sum(x$ESTREL, na.rm = TRUE)
-    )
-  })
-
-  df <- as.data.frame(do.call(rbind, res))
-  df[, 2:5] <- sapply(df[, 2:5], as.numeric)
-  totcat_prelim <- df[order(df$COMMON), ]
-
-  # totcat_prelim <- catch_prelim %>%
-  # group_by(COMMON, WAVE) %>%
-  #  summarise(
-  #    sum_catch = sum(TOT_CAT, na.rm = TRUE),
-  #    sum_land = sum(LANDING, na.rm = TRUE),
-  #    sum_rel = sum(ESTREL, na.rm = TRUE),
-  #    .groups = 'drop'
-  #  )
-
-  # Join 2024 mripdata with calculated harvest_stats (mean, sd, and n) PICK UP HERE  JMGO
-  totcat <- merge(totcat_prelim, totcat_stats, by = c("COMMON", "WAVE"), all.x = T)
-
+  # Join mripdata with calculated harvest_stats (mean, sd, and n)
+  vats <- c("TOT_CAT", "LANDING", "ESTREL")
+  outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"))
+  # names(outliers) <- vats
   ##### TOTAL CATCH COMPARISONS######
 
   # prelim calculations###########
-  # need combined file for graphing later in code
-
-  # Had an issue in the next section because of some tot_catch estimates in 2024 that aren't in the 2017-2023 summaries
-  # Removed these first and put the ones being removed into a unique file so they can still be looked at later
-  totcat_notCommon <- totcat[is.na(totcat$n), ]
-  totcat <- totcat[!is.na(totcat$n), ]
-
-  # Apply the Thompson Tau calculation
-
-  totcat$outlier_CATCH <- mapply(tau, totcat$n, totcat$sum_totcat, totcat$mean_catch, totcat$sd_catch)
-  totcat$outlier_LAND <- mapply(tau, totcat$n, totcat$sum_land, totcat$mean_catch_l, totcat$sd_catch_l)
-  totcat$outlier <- mapply(tau, totcat$n, totcat$sum_rel, totcat$mean_catch_r, totcat$sd_catch_r)
-
-  # totcat <- totcat %>%
-  #  rowwise() %>%
-  #  mutate(
-  #  outlier_CATCH = tau(n, sum_totcat, mean_catch, sd_catch),
-  #  outlier_LAND = tau(n, sum_land, mean_catch_l, sd_catch_l),
-  #  outlier = tau(n, sum_rel, mean_catch_r, sd_catch_r))
-
-  # Filter the outliers
-  totcat_outliers <- totcat[totcat$outlier_CATCH == TRUE, ]
-  write.csv(totcat_outliers, file.path(outdir, "totcat_outliers.csv"))
-
-  land_outliers <- totcat[totcat$outlier_LAND == TRUE, ]
-  write.csv(land_outliers, file.path(outdir, "landings_outliers.csv"))
-
-  rel_outliers <- totcat[totcat$outlier == TRUE, ]
-  write.csv(rel_outliers, file.path(outdir, "release_outliers.csv"))
+  # totcat_notCommon <- totcat[is.na(totcat$n), ]
 
   all_combinations <- expand.grid(
     COMMON = species,
@@ -183,13 +120,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
 
   # Merge with the original mripdata frame
   combined_catch <- merge(all_combinations, catchall, all.x = TRUE)
-
-  # Optionally, replace NA values with 0
-  # merged_df$value[is.na(merged_df$value)] <- 0
-
-  # print(merged_df)
-
-  # combined_catch <- tidyr::complete(catchall, COMMON = species, YEAR = styr:endyr + 1, WAVE = waves, MODE_FX_F = modes, AREA_X_F = areas)
+  # Optionally, replace NA values with 0...
 
   combined_catch$YEAR <- as.factor(combined_catch$YEAR)
   combined_catch$WAVE <- as.factor(combined_catch$WAVE)
@@ -206,51 +137,11 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   effort_prelim <- effortall[effortall$YEAR == y_prelim, ]
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
 
-  res <- by(effort, list(effort$WAVE, effort$MODE_FX_F, effort$AREA_X_F), function(x) {
-    # if (nrow(x) > 1000) {
-    c(
-      MODE_FX_F = unique(x$MODE_FX_F),
-      AREA_X_F = unique(x$AREA_X_F),
-      WAVE = unique(x$WAVE),
-      mean_trips = mean(x$ESTRIPS, na.rm = TRUE),
-      sd_trips = sd(x$ESTRIPS, na.rm = TRUE),
-      n = nrow(x)
-    )
-  })
+  compute_subset <- effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
+  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"))
 
-  df <- as.data.frame(do.call(rbind, res))
-  df[, 3:6] <- sapply(df[, 3:6], as.numeric)
-  effort_stats <- df
-  # Group by relevant columns and calculate sample size n, mean, and std dev
-  # effort_stats <- effort %>%
-  #  group_by(WAVE, MODE_FX_F, AREA_X_F) %>% #add year?
-  #  summarise(
-  #    mean_trips = mean(ESTRIPS, na.rm = TRUE),
-  #    sd_trips = sd(ESTRIPS, na.rm = TRUE),
-  #    n = n(), # Calculate sample size for each group
-  #    .groups = "drop",
-  #  )
-
-  trips <- merge(effort_prelim, effort_stats, by = c("WAVE", "MODE_FX_F", "AREA_X_F"), all.x = T)
   ##### Effort section
   # Apply the Thompson Tau calculation
-
-  trips$outlier <- mapply(tau, trips$n, trips$ESTRIPS, trips$mean_trips, trips$sd_trips)
-  # trips <- trips %>%
-  #  rowwise() %>%
-  #  mutate(outlier = {
-  # Calculate tau critical value
-  #    if (n > 2) {
-  #      t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
-  #      tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
-  #      abs(ESTRIPS - mean_trips) / sd_trips > tau
-  #    } else {
-  #      FALSE # Not enough mripdata to calculate outliers
-  #    }
-  #  })
-
-  effort_outliers <- trips[trips$outlier == TRUE, ]
-  write.csv(effort_outliers, file.path(outdir, "effort_outliers.csv"))
 
   makeplots(combined_catch, effortall, species, waves, outdir)
 }
@@ -267,7 +158,7 @@ readcatch <- function(filen, state, species, waves) {
   # } else {
   #  filen <- x
   # }
-  C.tmp <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
+  readin <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
   # na = "",
   # col_types = readr::cols(
@@ -303,12 +194,16 @@ readcatch <- function(filen, state, species, waves) {
   # ), lazy=T
   # )
 
-  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
+  numvars <- c(names(which(apply(readin, 2, \(x) any(grepl("[[:digit:]]", x))))))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
-  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
-  names(C.tmp) <- toupper(names(C.tmp))
-  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$COMMON %in% species & C.tmp$WAVE %in% waves, ] # & AREA_X_F %in% areas & MODE_FX_F %in% modes)
-  return(C.tmp)
+  readin[, numvars] <- apply(
+    readin[, numvars],
+    2,
+    \(x) as.numeric(gsub(",", "", x))
+  )
+  names(readin) <- toupper(names(readin))
+  readin <- subset(readin, ST == state & COMMON %in% species & readin$WAVE %in% waves)
+  return(readin)
 }
 
 #' Effort mripdata
@@ -320,33 +215,64 @@ readeffort <- function(filen, state, waves, areas, modes) {
   # } else {
   #  filen <- x
   # }
-  C.tmp <- read.csv(filen)
-  numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
+  readin <- read.csv(filen)
+  num <- apply(readin, 2, \(x) any(grepl("[[:digit:]]", x)))
+  numvars <- c(names(which(num)))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
-  C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
-
-  C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$WAVE %in% waves & C.tmp$AREA_X_F %in% areas & C.tmp$MODE_FX_F %in% modes, ]
-  names(C.tmp) <- toupper(names(C.tmp))
-  return(C.tmp)
+  readin[, numvars] <- apply(
+    readin[, numvars],
+    2,
+    \(x) as.numeric(gsub(",", "", x))
+  )
+  names(readin) <- toupper(names(readin))
+  readin <- subset(
+    readin,
+    ST == state & WAVE %in% waves & AREA_X_F %in% areas & MODE_FX_F %in% modes
+  )
+  return(readin)
 }
 
 readmrip <- function(filen, state, species, waves, areas, modes) {
   if (length(grep("mrip_catch_bywave_", filen)) > 0) {
-    mripdata <- readcatch(filen, state = state, species = species, waves = waves)
+    mripdata <- readcatch(
+      filen,
+      state = state,
+      species = species,
+      waves = waves
+    )
   } else if (length(grep("mrip_effort_bywave_", filen)) > 0) {
-    mripdata <- readeffort(filen, state = state, waves = waves, areas = areas, modes = modes)
+    mripdata <- readeffort(
+      filen,
+      state = state,
+      waves = waves,
+      areas = areas,
+      modes = modes
+    )
   }
 }
 
 years <- function(filenames, myyrs) {
-  yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
-  yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
+  findyrs <- regexpr("[0-9]{4}(_[0-9]{4})*", filenames)
+  yrsin <- regmatches(filenames, findyrs)
+  yrs <- sapply(sapply(yrsin, strsplit, split = "_"), as.integer)
+  multiyr <- yrs[which(sapply(yrs, length) > 1)]
+  singleyr <- yrs[which(sapply(yrs, length) < 2)]
+  yrs <- c(lapply(multiyr, \(x) x[1]:x[2]), singleyr)
   names(yrs) <- filenames
   yrs <- lapply(yrs, function(x) x[x %in% myyrs])
   yrs <- Filter(length, yrs)
 }
 
-readmripfiles <- function(x, y, src, myurl = NA, state, species, waves, areas, modes) {
+readmripfiles <- function(
+    x,
+    y,
+    src,
+    myurl = NA,
+    state,
+    species,
+    waves,
+    areas,
+    modes) {
   # x <- names(yrs)
   # y <- yrs
   # print(path)
@@ -364,9 +290,11 @@ readmripfiles <- function(x, y, src, myurl = NA, state, species, waves, areas, m
     } else {
       unzip(zipfile = path, exdir = temp2)
     }
-    files <- list.files(temp2)[sapply(unlist(unname(y)), function(b) grep(b, list.files(temp2)))]
+    findfiles <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
+    files <- list.files(temp2)[findfiles]
     mripdata <- do.call(rbind, lapply(files, function(z) {
-      mripdata <- readmrip(file.path(temp2, z), state, species, waves, areas, modes)
+      filepath <- file.path(temp2, z)
+      mripdata <- readmrip(filepath, state, species, waves, areas, modes)
       print(mripdata[1:5, 1:12])
       return(mripdata)
     }))
@@ -384,8 +312,40 @@ tau <- function(n, sum_catch, mean_catch, sd_catch) {
   if (n > 2) {
     t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
     tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
-    abs(sum_catch - mean_catch) / sd_catch > tau
+    outlier <- abs(sum_catch - mean_catch) / sd_catch > tau
   } else {
-    FALSE # Not enough mripdata to calculate outliers
+    outlier <- FALSE # Not enough mripdata to calculate outliers
   }
+  return(outlier)
+}
+
+agg <- function(vats, ids, compute_subset) {
+  agged <- aggregate(compute_subset[, vats],
+    by = lapply(ids, \(x) compute_subset[, x]),
+    FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
+  )
+  names(agged)[1:length(ids)] <- ids
+  namefill <- (length(ids) + 1):(length(ids) + length(vats))
+  names(agged)[namefill] <- vats
+  return(agged)
+}
+
+# test <- aggregate(compute_subset[, c("TOT_CAT", "LANDING", "ESTREL")], by=list(compute_subset[,"COMMON"], compute_subset[,"WAVE"]), FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x)))
+
+outlie <- function(vats, compute_subset, totcat_prelim, mergeby) {
+  df <- agg(vats, mergeby, compute_subset)
+  lapply(vats, function(x) {
+    sumstats <- df[, x]
+    baseline <- cbind(df[, mergeby], sumstats)
+    baseline <- baseline[!is.na(baseline$n), ]
+
+    comp <- totcat_prelim[, mergeby]
+    comp$val <- totcat_prelim[, x]
+    comp <- merge(comp, baseline, by = mergeby, all.x = T)
+
+    comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
+    totcat_outliers <- comp[comp$outlier == TRUE, ]
+    write.csv(totcat_outliers, file.path(outdir, paste(x, "outliers.csv", sep = "-")))
+    return(comp)
+  })
 }

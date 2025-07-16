@@ -45,13 +45,15 @@ Output files to explore the mrip data with the parameters entered
 Creates output to help you identify outliers
 }
 \examples{
-mrip(styr=2017, 
-  endyr=2024,
-  y_prelim=2025, 
-  species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH"), 
-  waves=c(2,3,4,5,6), 
-  areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
-  modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), 
-  state=24, 
-  outdir="~/output/mrip_ex")
+mrip(
+  styr = 2017,
+  endyr = 2024,
+  y_prelim = 2025,
+  species = c("BLACK SEA BASS", "TAUTOG"),
+  waves = c(2, 3, 4, 5, 6),
+  areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
+  modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
+  state = 24,
+  outdir = "~/output/mrip_ex"
+)
 }
