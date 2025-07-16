@@ -24,18 +24,22 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
     yrs <- years(filenames, myyrs)
     #function(x, y, src, myurl=NA, state, species, waves, areas, modes)
-    data <- Map(externalfile, names(yrs), yrs, MoreArgs=list(src=indir, myurl=myurl, state, species, waves, areas, modes)) #pick up here 7/11 to make this one function (below)
+    data <- Map(readmripfiles, names(yrs), yrs, MoreArgs=list(src=indir, myurl=myurl, state, species, waves, areas, modes)) 
+    print("download complete")
   } else {
     filenames <- list.files(indir)
     yrs <- years(filenames, myyrs)
-    data <- Map(externalfile, names(yrs), yrs, MoreArgs=list(src=indir, state=state, species=species, waves=waves, areas=areas, modes=modes))
+    data <- Map(readmripfiles, names(yrs), yrs, MoreArgs=list(src=indir, state=state, species=species, waves=waves, areas=areas, modes=modes))
     names(data) <- names(yrs)
+    print("read in complete")
   }
 
   data <- list(data[which(grepl("mrip_catch_bywave", names(data)))], data[which(grepl("mrip_effort_bywave", names(data)))])
-
+  print("data sorted")
   catchall <- do.call(rbind, data[[1]])
+  print("catch data compiled")
   catchall <- catchall[!duplicated(catchall), ]
+  print("catch data cleaned")
 
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ]
   catch <- catchall[catchall$YEAR %in% styr:endyr, ]
@@ -186,7 +190,9 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
 
   ################## EFFORT
   effortall <- do.call(rbind, data[[2]])
+  print("effort data compiled")
   effortall <- effortall[!duplicated(effortall), ]
+  print("effort data cleaned")
 
   effort_prelim <- effortall[effortall$YEAR == y_prelim, ]
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
@@ -316,6 +322,14 @@ readeffort <- function(filen, state, waves, areas, modes) {
   return(C.tmp)
 }
 
+readmrip <- function(filen, state, species, waves, areas, modes) {
+  if (length(grep("mrip_catch_bywave_", filen)) > 0) {
+    data <- readcatch(filen, state = state, species = species, waves = waves)
+  } else if (length(grep("mrip_effort_bywave_", filen)) > 0) {
+    data <- readeffort(filen, state = state, waves = waves, areas = areas, modes = modes)
+  }
+}
+
 years <- function(filenames, myyrs) {
   yrs <- sapply(sapply(regmatches(filenames, regexpr("[0-9]{4}(_[0-9]{4})*", filenames)), strsplit, split = "_"), as.integer)
   yrs <- c(lapply(yrs[which(sapply(yrs, length) > 1)], function(x) x[1]:x[2]), yrs[which(sapply(yrs, length) < 2)])
@@ -324,17 +338,15 @@ years <- function(filenames, myyrs) {
   yrs <- Filter(length, yrs)
 }
 
-externalfile <- function(x, y, src, myurl=NA, state, species, waves, areas, modes) {
+readmripfiles <- function(x, y, src, myurl=NA, state, species, waves, areas, modes) {
   # x <- names(yrs)
   # y <- yrs
   #print(path)
   print(x)
   print(y)
-  if(src=="remote") {
-    path <- paste0(myurl, x)
-  } else {
-    path <- file.path(src, x)
-  }
+  
+  path <- ifelse(src=="remote", paste0(myurl, x), file.path(src, x))
+  
   if (tools::file_ext(x) == "zip") {
     temp <- tempfile()
     temp2 <- tempfile()
@@ -344,36 +356,16 @@ externalfile <- function(x, y, src, myurl=NA, state, species, waves, areas, mode
     } else {
       unzip(zipfile = path, exdir = temp2)
     }
-    if (length(grep("mrip_catch_bywave_", x)) > 0) {
-      files <- sapply(y, function(a) {
-        paste0("mrip_catch_bywave_", a, ".csv")
-      })
-      data <- do.call(
-        rbind,
-        lapply(files, function(z) {
-          data <- readcatch(file.path(temp2, z), state, species, waves)
-          print(data[1:5,1:10])
-        return(data)})
-      )
-    } else if (length(grep("mrip_effort_bywave_", x)) > 0) {
-      files <- sapply(y, function(a) {
-        paste0("mrip_effort_bywave_", a, ".csv")
-      })
-      data <- do.call(
-        rbind,
-        lapply(files, function(z) {
-          data <- readeffort(file.path(temp2, z), state, waves, areas, modes)
-        })
-      )
-    }
+    files <- list.files(temp2)[sapply(unlist(unname(y)), function(b) grep(b,list.files(temp2)))]
+    data <- do.call(rbind, lapply(files, function(z) {
+          data <- readmrip(file.path(temp2, z), state, species, waves, areas, modes)
+          print(data[1:5,1:12])
+        return(data)}))
     if(exists(temp)) {unlink(temp)}
     unlink(temp2)
   } else {
-    if (length(grep("mrip_catch_bywave_", x)) > 0) {
-      data <- readcatch(path, state = state, species = species, waves = waves)
-    } else if (length(grep("mrip_effort_bywave_", x)) > 0) {
-      data <- readeffort(path, state = state, waves = waves, areas = areas, modes = modes)
-    }
+    data <- readmrip(path, state, species, waves, areas, modes)
+    print(data[1:5,1:12])
   }
   #print(data[1:5,1:10])
   return(data)
