@@ -3,40 +3,49 @@
 #' Creates output to help you identify outliers
 #' @param styr Start year
 #' @param endyr End year
-#' @param y_prelim The latest year in the data (preliminary)
+#' @param y_prelim The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
-#' @param indir (optional) point to locally downloaded MRIP files on your computer
+#' @param indir (optional) point to locally downloaded MRIP files
 #' @param outdir where your files should go
-#' @return Output files to explore the data with the parameters entered
+#' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
+#' mrip(styr=2017, 
+#'   endyr=2024,
+#'   y_prelim=2025, 
+#'   species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH"), 
+#'   waves=c(2,3,4,5,6), 
+#'   areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
+#'   modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), 
+#'   state=24, 
+#'   outdir="~/output/mrip_ex")
+
 mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state, indir = "remote", outdir) {
   myyrs <- c(styr:endyr, y_prelim)
 
-  if (indir=="remote") {
+  if (indir == "remote") {
     myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
     tmp <- readLines(myurl)
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))])
     yrs <- years(filenames, myyrs)
-    #function(x, y, src, myurl=NA, state, species, waves, areas, modes)
-    data <- Map(readmripfiles, names(yrs), yrs, MoreArgs=list(src=indir, myurl=myurl, state, species, waves, areas, modes)) 
+    # function(x, y, src, myurl=NA, state, species, waves, areas, modes)
+    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = list(src = indir, myurl = myurl, state, species, waves, areas, modes))
     print("download complete")
   } else {
     filenames <- list.files(indir)
     yrs <- years(filenames, myyrs)
-    data <- Map(readmripfiles, names(yrs), yrs, MoreArgs=list(src=indir, state=state, species=species, waves=waves, areas=areas, modes=modes))
-    names(data) <- names(yrs)
+    mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = list(src = indir, state = state, species = species, waves = waves, areas = areas, modes = modes))
+    names(mripdata) <- names(yrs)
     print("read in complete")
   }
 
-  data <- list(data[which(grepl("mrip_catch_bywave", names(data)))], data[which(grepl("mrip_effort_bywave", names(data)))])
-  print("data sorted")
-  catchall <- do.call(rbind, data[[1]])
+  mripdata <- list(mripdata[which(grepl("mrip_catch_bywave", names(mripdata)))], mripdata[which(grepl("mrip_effort_bywave", names(mripdata)))])
+  print("mrip data sorted")
+  catchall <- do.call(rbind, mripdata[[1]])
   print("catch data compiled")
   catchall <- catchall[!duplicated(catchall), ]
   print("catch data cleaned")
@@ -128,7 +137,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   #    .groups = 'drop'
   #  )
 
-  # Join 2024 data with calculated harvest_stats (mean, sd, and n) PICK UP HERE  JMGO
+  # Join 2024 mripdata with calculated harvest_stats (mean, sd, and n) PICK UP HERE  JMGO
   totcat <- merge(totcat_prelim, totcat_stats, by = c("COMMON", "WAVE"), all.x = T)
 
   ##### TOTAL CATCH COMPARISONS######
@@ -172,7 +181,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
     AREA_X_F = areas
   )
 
-  # Merge with the original data frame
+  # Merge with the original mripdata frame
   combined_catch <- merge(all_combinations, catchall, all.x = TRUE)
 
   # Optionally, replace NA values with 0
@@ -189,7 +198,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
 
   ################## EFFORT
-  effortall <- do.call(rbind, data[[2]])
+  effortall <- do.call(rbind, mripdata[[2]])
   print("effort data compiled")
   effortall <- effortall[!duplicated(effortall), ]
   print("effort data cleaned")
@@ -236,7 +245,7 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   #      tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
   #      abs(ESTRIPS - mean_trips) / sd_trips > tau
   #    } else {
-  #      FALSE # Not enough data to calculate outliers
+  #      FALSE # Not enough mripdata to calculate outliers
   #    }
   #  })
 
@@ -246,12 +255,11 @@ mrip <- function(styr, endyr, y_prelim = NA, species, waves, areas, modes, state
   makeplots(combined_catch, effortall, species, waves, outdir)
 }
 
-#' Catch data
+#' Catch mripdata
 #'
-#' Info on setting columns to specific data types and options can be found https://stackoverflow.com/questions/31568409/override-column-types-when-importing-data-using-readrread-csv-when-there-are
-#' subsets to just your state's data #need same number of columns for this to work
+#' subsets to just your state's mripdata
 #' need same number of columns for this to work
-#' 
+#'
 #' @noRd
 readcatch <- function(filen, state, species, waves) {
   # if (length(grep("zip", x))) {
@@ -294,7 +302,7 @@ readcatch <- function(filen, state, species, waves) {
   # LOWER_TOT_LEN = readr::col_integer(), UPPER_TOT_LEN = readr::col_integer(), MISS_FISH = readr::col_integer(),
   # ), lazy=T
   # )
-  
+
   numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
   C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
@@ -303,8 +311,8 @@ readcatch <- function(filen, state, species, waves) {
   return(C.tmp)
 }
 
-#' Effort data
-#' 
+#' Effort mripdata
+#'
 #' @noRd
 readeffort <- function(filen, state, waves, areas, modes) {
   # if (length(grep("z", x))) {
@@ -316,7 +324,7 @@ readeffort <- function(filen, state, waves, areas, modes) {
   numvars <- c(names(which(apply(C.tmp, 2, function(x) any(grepl("[[:digit:]]", x))))))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
   C.tmp[, numvars] <- apply(C.tmp[, numvars], 2, function(x) as.numeric(gsub(",", "", x)))
-  
+
   C.tmp <- C.tmp[C.tmp$ST == state & C.tmp$WAVE %in% waves & C.tmp$AREA_X_F %in% areas & C.tmp$MODE_FX_F %in% modes, ]
   names(C.tmp) <- toupper(names(C.tmp))
   return(C.tmp)
@@ -324,9 +332,9 @@ readeffort <- function(filen, state, waves, areas, modes) {
 
 readmrip <- function(filen, state, species, waves, areas, modes) {
   if (length(grep("mrip_catch_bywave_", filen)) > 0) {
-    data <- readcatch(filen, state = state, species = species, waves = waves)
+    mripdata <- readcatch(filen, state = state, species = species, waves = waves)
   } else if (length(grep("mrip_effort_bywave_", filen)) > 0) {
-    data <- readeffort(filen, state = state, waves = waves, areas = areas, modes = modes)
+    mripdata <- readeffort(filen, state = state, waves = waves, areas = areas, modes = modes)
   }
 }
 
@@ -338,37 +346,38 @@ years <- function(filenames, myyrs) {
   yrs <- Filter(length, yrs)
 }
 
-readmripfiles <- function(x, y, src, myurl=NA, state, species, waves, areas, modes) {
+readmripfiles <- function(x, y, src, myurl = NA, state, species, waves, areas, modes) {
   # x <- names(yrs)
   # y <- yrs
-  #print(path)
+  # print(path)
   print(x)
   print(y)
-  
-  path <- ifelse(src=="remote", paste0(myurl, x), file.path(src, x))
-  
+
+  path <- ifelse(src == "remote", paste0(myurl, x), file.path(src, x))
+
   if (tools::file_ext(x) == "zip") {
     temp <- tempfile()
     temp2 <- tempfile()
-    if(src=="remote") {
+    if (src == "remote") {
       download.file(path, temp)
-      unzip(zipfile = temp, exdir = temp2) 
+      unzip(zipfile = temp, exdir = temp2)
     } else {
       unzip(zipfile = path, exdir = temp2)
     }
-    files <- list.files(temp2)[sapply(unlist(unname(y)), function(b) grep(b,list.files(temp2)))]
-    data <- do.call(rbind, lapply(files, function(z) {
-          data <- readmrip(file.path(temp2, z), state, species, waves, areas, modes)
-          print(data[1:5,1:12])
-        return(data)}))
-    if(exists(temp)) {unlink(temp)}
+    files <- list.files(temp2)[sapply(unlist(unname(y)), function(b) grep(b, list.files(temp2)))]
+    mripdata <- do.call(rbind, lapply(files, function(z) {
+      mripdata <- readmrip(file.path(temp2, z), state, species, waves, areas, modes)
+      print(mripdata[1:5, 1:12])
+      return(mripdata)
+    }))
+    unlink(temp)
     unlink(temp2)
   } else {
-    data <- readmrip(path, state, species, waves, areas, modes)
-    print(data[1:5,1:12])
+    mripdata <- readmrip(path, state, species, waves, areas, modes)
+    print(mripdata[1:5, 1:12])
   }
-  #print(data[1:5,1:10])
-  return(data)
+  # print(mripdata[1:5,1:10])
+  return(mripdata)
 }
 
 tau <- function(n, sum_catch, mean_catch, sd_catch) {
@@ -377,6 +386,6 @@ tau <- function(n, sum_catch, mean_catch, sd_catch) {
     tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
     abs(sum_catch - mean_catch) / sd_catch > tau
   } else {
-    FALSE # Not enough data to calculate outliers
+    FALSE # Not enough mripdata to calculate outliers
   }
 }

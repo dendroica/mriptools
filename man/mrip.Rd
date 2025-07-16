@@ -2,7 +2,7 @@
 % Please edit documentation in R/mrip.R
 \name{mrip}
 \alias{mrip}
-\title{MRIP Outlier}
+\title{MRIP outlier}
 \usage{
 mrip(
   styr,
@@ -13,7 +13,7 @@ mrip(
   areas,
   modes,
   state,
-  indir = NULL,
+  indir = "remote",
   outdir
 )
 }
@@ -22,7 +22,7 @@ mrip(
 
 \item{endyr}{End year}
 
-\item{y_prelim}{The latest year in the data (preliminary)}
+\item{y_prelim}{The latest year in the mrip data (preliminary)}
 
 \item{species}{A vector of the species to include}
 
@@ -34,16 +34,24 @@ mrip(
 
 \item{state}{The FIPS code for the state of interest}
 
-\item{indir}{(optional) point to locally downloaded MRIP files on your computer}
+\item{indir}{(optional) point to locally downloaded MRIP files}
 
 \item{outdir}{where your files should go}
 }
 \value{
-Output files to explore the data with the parameters entered
+Output files to explore the mrip data with the parameters entered
 }
 \description{
 Creates output to help you identify outliers
 }
 \examples{
-mrip(2022, 2023, 2024, c("SUMMER FLOUNDER", "TAUTOG"), c(3, 4), c("INLAND", "OCEAN (<= 3 MI)"), c("CHARTER BOAT", "PARTY BOAT"), 24)
+mrip(styr=2017, 
+  endyr=2024,
+  y_prelim=2025, 
+  species=c("ATLANTIC CROAKER", "BLACK DRUM", "BLACK SEA BASS", "BLUEFISH"), 
+  waves=c(2,3,4,5,6), 
+  areas=c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"), 
+  modes=c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"), 
+  state=24, 
+  outdir="~/output/mrip_ex")
 }
