@@ -99,7 +99,7 @@ mrip <- function(
   # Join mripdata with calculated harvest_stats (mean, sd, and n)
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
-  outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"))
+  outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"), outdir)
   # names(outliers) <- vats
   ##### TOTAL CATCH COMPARISONS######
 
@@ -134,7 +134,7 @@ mrip <- function(
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
 
   compute_subset <- effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
-  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"))
+  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
 
   ##### Effort section
   # Apply the Thompson Tau calculation
@@ -328,7 +328,7 @@ agg <- function(vats, ids, compute_subset) {
 
 # test <- aggregate(compute_subset[, c("TOT_CAT", "LANDING", "ESTREL")], by=list(compute_subset[,"COMMON"], compute_subset[,"WAVE"]), FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x)))
 
-outlie <- function(vats, compute_subset, totcat_prelim, mergeby) {
+outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
   df <- agg(vats, mergeby, compute_subset)
   lapply(vats, function(x) {
     sumstats <- df[, x]
