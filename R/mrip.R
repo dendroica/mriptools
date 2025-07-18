@@ -33,20 +33,19 @@ mrip <- function(
     areas,
     modes,
     state,
-    indir = "remote",
+    indir = NULL,
     outdir) {
   myyrs <- c(styr:endyr, y_prelim)
 
-  if (indir == "remote") {
-    myurl <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
-    tmp <- readLines(myurl)
+  if (is.null(indir)) {
+    indir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
+    tmp <- readLines(paste0(indir, "/"))
     fiels <- tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))]
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", fiels)
     yrs <- years(filenames, myyrs)
-    # function(x, y, src, myurl=NA, state, species, waves, areas, modes)
+    # function(x, y, src, state, species, waves, areas, modes)
     vars <- list(
-      src = indir,
-      myurl = myurl,
+      indir = indir,
       state,
       species,
       waves,
@@ -59,7 +58,7 @@ mrip <- function(
     filenames <- list.files(indir)
     yrs <- years(filenames, myyrs)
     vars <- list(
-      src = indir,
+      indir = indir,
       state = state,
       species = species,
       waves = waves,
@@ -262,8 +261,7 @@ years <- function(filenames, myyrs) {
 readmripfiles <- function(
     x,
     y,
-    src,
-    myurl = NA,
+    indir,
     state,
     species,
     waves,
@@ -275,12 +273,12 @@ readmripfiles <- function(
   print(x)
   print(y)
 
-  path <- ifelse(src == "remote", paste0(myurl, x), file.path(src, x))
+  path <- file.path(indir, x)
 
   if (tools::file_ext(x) == "zip") {
     temp <- tempfile()
     temp2 <- tempfile()
-    if (src == "remote") {
+    if (grepl("^https", indir)) {
       download.file(path, temp)
       unzip(zipfile = temp, exdir = temp2)
     } else {
