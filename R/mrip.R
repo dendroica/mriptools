@@ -253,11 +253,9 @@ readmripfiles <- function(
     waves,
     areas,
     modes) {
-  # x <- names(yrs)
-  # y <- yrs
-  # print(path)
-  print(x)
-  print(y)
+  
+  print(x) # x <- names(yrs)
+  print(y) # y <- yrs
 
   path <- file.path(indir, x)
 
