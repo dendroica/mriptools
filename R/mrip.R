@@ -94,12 +94,11 @@ mrip <- function(
     list(COMMON = catch$COMMON, YEAR = catch$YEAR, WAVE = catch$WAVE),
     sum
   )
-  # names(res)[4:6] <- c("sum_totcat", "sum_land", "sum_rel")
   # Join mripdata with calculated harvest_stats (mean, sd, and n)
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
   outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"), outdir)
-  # names(outliers) <- vats
+
   ##### TOTAL CATCH COMPARISONS######
 
   # prelim calculations###########
@@ -135,9 +134,6 @@ mrip <- function(
   compute_subset <- effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
 
-  ##### Effort section
-  # Apply the Thompson Tau calculation
-
   makeplots(combined_catch, effortall, species, waves, outdir)
 }
 
@@ -148,11 +144,6 @@ mrip <- function(
 #'
 #' @noRd
 readcatch <- function(filen, state, species, waves) {
-  # if (length(grep("zip", x))) {
-  #  filen <- archive::archive_read(x, file = xfile)
-  # } else {
-  #  filen <- x
-  # }
   readin <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
   # na = "",
@@ -205,11 +196,6 @@ readcatch <- function(filen, state, species, waves) {
 #'
 #' @noRd
 readeffort <- function(filen, state, waves, areas, modes) {
-  # if (length(grep("z", x))) {
-  #  filen <- archive::archive_read(x, file = xfile)
-  # } else {
-  #  filen <- x
-  # }
   readin <- read.csv(filen)
   num <- apply(readin, 2, \(x) any(grepl("[[:digit:]]", x)))
   numvars <- c(names(which(num)))
@@ -323,8 +309,6 @@ agg <- function(vats, ids, compute_subset) {
   names(agged)[namefill] <- vats
   return(agged)
 }
-
-# test <- aggregate(compute_subset[, c("TOT_CAT", "LANDING", "ESTREL")], by=list(compute_subset[,"COMMON"], compute_subset[,"WAVE"]), FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x)))
 
 outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
   df <- agg(vats, mergeby, compute_subset)
