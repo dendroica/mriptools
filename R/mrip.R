@@ -36,7 +36,6 @@ mrip <- function(
     indir = NULL,
     outdir) {
   myyrs <- c(styr:endyr, y_prelim)
-
   if (is.null(indir)) {
     indir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
     tmp <- readLines(paste0(indir, "/"))
@@ -96,8 +95,9 @@ mrip <- function(
   )
   # Join mripdata with calculated harvest_stats (mean, sd, and n)
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
-  compute_subset <- res[, c("COMMON", "WAVE", "TOT_CAT", "LANDING", "ESTREL")]
-  outlie(vats, compute_subset, totcat_prelim, c("COMMON", "WAVE"), outdir)
+  factyors <- c("COMMON", "WAVE")
+  compute_subset <- res[, c(factyors, vats)]
+  outlie(vats, compute_subset, totcat_prelim, factyors, outdir)
 
   ##### TOTAL CATCH COMPARISONS######
 
@@ -115,7 +115,7 @@ mrip <- function(
   # Merge with the original mripdata frame
   combined_catch <- merge(all_combinations, catchall, all.x = TRUE)
   # Optionally, replace NA values with 0...
-
+  combined_catch <- combined_catch[combined_catch$COMMON %in% species,]
   combined_catch$YEAR <- as.factor(combined_catch$YEAR)
   combined_catch$WAVE <- as.factor(combined_catch$WAVE)
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
@@ -133,7 +133,8 @@ mrip <- function(
 
   compute_subset <- effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
-
+  
+  effortall$YEAR <- as.factor(effortall$YEAR)
   makeplots(combined_catch, effortall, species, waves, outdir)
 }
 
@@ -188,7 +189,7 @@ readcatch <- function(filen, state, species, waves) {
     \(x) as.numeric(gsub(",", "", x))
   )
   names(readin) <- toupper(names(readin))
-  readin <- subset(readin, ST == state & COMMON %in% species & readin$WAVE %in% waves)
+  readin <- subset(readin, ST == state & readin$WAVE %in% waves) #COMMON %in% species 
   return(readin)
 }
 
@@ -318,7 +319,7 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
     comp <- totcat_prelim[, mergeby]
     comp$val <- totcat_prelim[, x]
     comp <- merge(comp, baseline, by = mergeby, all.x = T)
-
+    comp <- comp[!apply(comp, 1, function(x) any(is.na(x))),]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
     totcat_outliers <- comp[comp$outlier == TRUE, ]
     write.csv(totcat_outliers, file.path(outdir, paste(x, "outliers.csv", sep = "-")))

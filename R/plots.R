@@ -62,13 +62,14 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   
   # Graphing of releases
   # set up release plot function
-  relplot <- function(wavenum, species) {
-    df <- combined_catch[combined_catch$COMMON == species & combined_catch$WAVE == wavenum, ]
+  relplot <- function(wavenum, s) {
+    df <- combined_catch[combined_catch$COMMON == s & combined_catch$WAVE == wavenum, ]
+    #df$YEAR <- as.integer(df$YEAR)
     p <-
       ggplot(df, aes(x = YEAR, y = ESTREL)) +
       geom_point() +
       geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
-      labs(title = paste0(species, " WAVE ", wavenum, " Live Releases (B2)"), y = "Live Releases (numbers)") +
+      labs(title = paste0(s, " WAVE ", wavenum, " Live Releases (B2)"), y = "Live Releases (numbers)") +
       facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
       theme_bw() +
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
@@ -86,14 +87,15 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   
   effplot <- function(wavenum) {
     df <- effortall[effortall$WAVE == wavenum, ]
+    #df$YEAR <- as.integer(df$YEAR)
     p <-
       ggplot(df, aes(x = YEAR, y = ESTRIPS)) +
-      geom_point() +
-      geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
-      labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
-      facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
-      theme_bw() +
-      scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        geom_point() +
+        geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
+        labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
+        facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
+        theme_bw() +
+        scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
   
