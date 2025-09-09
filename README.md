@@ -37,6 +37,8 @@ myspecies <- c(
   "TAUTOG"
 )
 
+my_outdir <- "~/output/mrip_ex"
+
 mrip(
   styr = 2017,
   endyr = 2024,
@@ -46,6 +48,7 @@ mrip(
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
   state = 24,
-  outdir = "~/output/mrip_ex"
+  outdir = my_outdir
 ) # indir="~/data/MRIP",
 ```
+
