@@ -20,15 +20,15 @@ myspecies <- c(
   "SUMMER FLOUNDER",
   "TAUTOG"
 )
-
+my_outdir <- "~/output/mrip_ex"
 mrip(
   styr = 2017,
-  endyr = 2023,
-  y_prelim = 2024,
+  endyr = 2024,
+  y_prelim = 2025,
   species = myspecies,
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
   state = 24,
-  outdir = "~/output/mrip_ex",
-  indir="~/data/mrip_old") # indir="~/data/mrip_old",
+  outdir = my_outdir) # indir="~/data/mrip_old",
+
