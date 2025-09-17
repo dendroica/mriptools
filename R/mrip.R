@@ -91,9 +91,9 @@ return(list(catchall, effortall))
 #' Creates output to help you identify outliers
 #' @param catchall Compiled MRIP catch data
 #' @param effortall Compiled MRIP effort data
-#' @param outdir where you want your output to go
 #' @param styr Start year
 #' @param endyr End year
+#' @param outdir where you want your output to go
 #' @param y_prelim The latest year in the mrip data (preliminary)
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
