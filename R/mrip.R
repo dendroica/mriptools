@@ -1,4 +1,4 @@
-#' MRIP outlier
+#' MRIP data
 #'
 #' Creates output to help you identify outliers
 #' @param styr Start year
@@ -14,7 +14,7 @@
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip(
+#' mrip_data(
 #'   styr = 2017,
 #'   endyr = 2024,
 #'   y_prelim = 2025,
@@ -25,7 +25,8 @@
 #'   state = 24,
 #'   outdir = "~/output/mrip_ex"
 #' )
-mrip <- function(
+
+mrip_data <- function(
     styr,
     endyr,
     y_prelim = NA,
@@ -68,7 +69,7 @@ mrip <- function(
     names(mripdata) <- names(yrs)
     print("read in complete")
   }
-
+  
   mripdata <- list(
     mripdata[which(grepl("mrip_catch_bywave", names(mripdata)))],
     mripdata[which(grepl("mrip_effort_bywave", names(mripdata)))]
@@ -78,7 +79,25 @@ mrip <- function(
   print("catch data compiled")
   catchall <- catchall[!duplicated(catchall), ]
   print("catch data cleaned")
+  
+  effortall <- do.call(rbind, mripdata[[2]])
+  print("effort data compiled")
+  effortall <- effortall[!duplicated(effortall), ]
+  print("effort data cleaned")
+return(list(catchall, effortall))
+}
 
+#' MRIP outlier
+#'
+#' Creates output to help you identify outliers
+#' @param catchall Compiled MRIP catch data
+#' @param effortall Compiled MRIP effort data
+#' @return Output files to explore the mrip data with the parameters entered
+#' @export
+#' @examples
+#' mrip(catchall, effortall)
+
+mrip <- function(catchall, effortall) {
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -123,11 +142,6 @@ mrip <- function(
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
 
   ################## EFFORT
-  effortall <- do.call(rbind, mripdata[[2]])
-  print("effort data compiled")
-  effortall <- effortall[!duplicated(effortall), ]
-  print("effort data cleaned")
-
   effort_prelim <- effortall[effortall$YEAR == y_prelim, ]
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
 

@@ -4,39 +4,12 @@
 \alias{mrip}
 \title{MRIP outlier}
 \usage{
-mrip(
-  styr,
-  endyr,
-  y_prelim = NA,
-  species,
-  waves,
-  areas,
-  modes,
-  state,
-  indir = "remote",
-  outdir
-)
+mrip(catchall, effortall)
 }
 \arguments{
-\item{styr}{Start year}
+\item{catchall}{Compiled MRIP catch data}
 
-\item{endyr}{End year}
-
-\item{y_prelim}{The latest year in the mrip data (preliminary)}
-
-\item{species}{A vector of the species to include}
-
-\item{waves}{The MRIP waves to include}
-
-\item{areas}{Strata in distance from shore}
-
-\item{modes}{Modes of fishing}
-
-\item{state}{The FIPS code for the state of interest}
-
-\item{indir}{(optional) point to locally downloaded MRIP files}
-
-\item{outdir}{where your files should go}
+\item{effortall}{Compiled MRIP effort data}
 }
 \value{
 Output files to explore the mrip data with the parameters entered
@@ -45,15 +18,5 @@ Output files to explore the mrip data with the parameters entered
 Creates output to help you identify outliers
 }
 \examples{
-mrip(
-  styr = 2017,
-  endyr = 2024,
-  y_prelim = 2025,
-  species = c("BLACK SEA BASS", "TAUTOG"),
-  waves = c(2, 3, 4, 5, 6),
-  areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
-  modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
-  state = 24,
-  outdir = "~/output/mrip_ex"
-)
+mrip(catchall, effortall)
 }
