@@ -4,12 +4,20 @@
 \alias{mrip}
 \title{MRIP outlier}
 \usage{
-mrip(catchall, effortall)
+mrip(catchall, effortall, styr, endyr, y_prelim, outdir)
 }
 \arguments{
 \item{catchall}{Compiled MRIP catch data}
 
 \item{effortall}{Compiled MRIP effort data}
+
+\item{styr}{Start year}
+
+\item{endyr}{End year}
+
+\item{y_prelim}{The latest year in the mrip data (preliminary)}
+
+\item{outdir}{where you want your output to go}
 }
 \value{
 Output files to explore the mrip data with the parameters entered

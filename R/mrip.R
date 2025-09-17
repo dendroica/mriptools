@@ -10,7 +10,6 @@
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
 #' @param indir (optional) point to locally downloaded MRIP files
-#' @param outdir where your files should go
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
@@ -92,12 +91,16 @@ return(list(catchall, effortall))
 #' Creates output to help you identify outliers
 #' @param catchall Compiled MRIP catch data
 #' @param effortall Compiled MRIP effort data
+#' @param outdir where you want your output to go
+#' @param styr Start year
+#' @param endyr End year
+#' @param y_prelim The latest year in the mrip data (preliminary)
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
 #' mrip(catchall, effortall)
 
-mrip <- function(catchall, effortall) {
+mrip <- function(catchall, effortall, styr, endyr, y_prelim, outdir) {
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -149,8 +152,7 @@ mrip <- function(catchall, effortall) {
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
   
   effortall$YEAR <- as.factor(effortall$YEAR)
-  makeplots(combined_catch, effortall, species, waves, outdir)
-}
+return(combined_catch)}
 
 #' Catch mripdata
 #'

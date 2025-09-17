@@ -35,8 +35,6 @@ mrip_data(
 \item{state}{The FIPS code for the state of interest}
 
 \item{indir}{(optional) point to locally downloaded MRIP files}
-
-\item{outdir}{where your files should go}
 }
 \value{
 Output files to explore the mrip data with the parameters entered
