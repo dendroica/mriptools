@@ -9,6 +9,7 @@
 #' @param outdir where your files should go
 #' @return Output files to explore the data with the parameters entered
 #' @import ggplot2
+#' @export
 makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   # Wanted to graph the outputs to see how catch levels & PSEs compare across years by wave, mode, and area
   # Graphed according to the species list, waves, areas, and modes you set in the beginning section of code

@@ -4,7 +4,7 @@
 \alias{mrip}
 \title{MRIP outlier}
 \usage{
-mrip(catchall, effortall, styr, endyr, y_prelim, outdir)
+mrip(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, outdir)
 }
 \arguments{
 \item{catchall}{Compiled MRIP catch data}
