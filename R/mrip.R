@@ -339,6 +339,7 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
     totcat_outliers <- comp[comp$outlier == TRUE, ]
     write.csv(totcat_outliers, file.path(outdir, paste(x, "outliers.csv", sep = "-")))
+    comp$var <- x
     return(comp)
   })
 }
