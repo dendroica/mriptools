@@ -29,13 +29,14 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   }
   
   # Loops through each species and produces a graph for each wave
-  pdf(file.path(outdir, "Total Catch.pdf"))
   for (s in species) {
+    dir.create(file.path(outdir, s), showWarnings=F)
+    pdf(file.path(outdir, s, "Total Catch.pdf"))
     for (w in waves) {
       totcatplot(w, s)
     }
+    dev.off()
   }
-  dev.off()
   
   # Graphing of landings
   # set up landings plot function
@@ -53,13 +54,14 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   }
   
   # Loops through each species and produces a graph for each wave
-  pdf(file.path(outdir, "Landings.pdf"))
   for (s in species) {
+    dir.create(file.path(outdir, s), showWarnings=F)
+    pdf(file.path(outdir, s, "Landings.pdf"))
     for (w in waves) {
       landingplot(w, s)
     }
-  }
-  dev.off() # closes the PDF device
+    dev.off()
+  } # closes the PDF device
   
   # Graphing of releases
   # set up release plot function
@@ -78,25 +80,27 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   }
   
   # Loops through each species and produces a graph for each wave
-  pdf(file.path(outdir, "Releases.pdf"))
   for (s in species) {
+    dir.create(file.path(outdir, s), showWarnings=F)
+    pdf(file.path(outdir, s, "Releases.pdf"))
     for (w in waves) {
       relplot(w, s)
     }
+    dev.off()
   }
-  dev.off() # closes the PDF device
+  # closes the PDF device
   
   effplot <- function(wavenum) {
     df <- effortall[effortall$WAVE == wavenum, ]
     #df$YEAR <- as.integer(df$YEAR)
     p <-
       ggplot(df, aes(x = YEAR, y = ESTRIPS)) +
-        geom_point() +
-        geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
-        labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
-        facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
-        theme_bw() +
-        scale_x_discrete(guide = guide_axis(n.dodge = 2))
+      geom_point() +
+      geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
+      labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
+      facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
+      theme_bw() +
+      scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
   
