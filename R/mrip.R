@@ -119,7 +119,7 @@ mrip <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, are
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   factyors <- c("COMMON", "WAVE")
   compute_subset <- res[, c(factyors, vats)]
-  outlie(vats, compute_subset, totcat_prelim, factyors, outdir)
+  outlierx <- outlie(vats, compute_subset, totcat_prelim, factyors, outdir)
 
   ##### TOTAL CATCH COMPARISONS######
 
@@ -152,7 +152,7 @@ mrip <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, are
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
   
   effortall$YEAR <- as.factor(effortall$YEAR)
-return(combined_catch)}
+return(list(combined_catch, outlierx))}
 
 #' Catch mripdata
 #'
