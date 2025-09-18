@@ -105,7 +105,7 @@ mrip <- function(catchall, effortall, styr, endyr, y_prelim, species, outdir) {
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
   totcat_prelim <- aggregate(compute_subset, groupvar, sum)
-  
+  myyrs <- styr:endyr
   catch <- catchall[catchall$YEAR %in% styr:endyr, ] # years for baseline/ave
 
   # For looking for outliers by species across the modes and areas
