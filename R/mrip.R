@@ -157,7 +157,7 @@ mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, mo
   effortall$YEAR <- as.factor(effortall$YEAR)
 return(list(combined_catch, outlierx))}
 
-#' MRIP outlier
+#' MRIP analysis
 #'
 #' Creates output to help you identify outliers
 #' @param styr Start year
