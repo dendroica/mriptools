@@ -103,7 +103,7 @@ return(list(catchall, effortall))
 #' @examples
 #' mrip_outlier(catchall, effortall)
 
-mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, outdir) {
+mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, waves, outdir) {
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -196,7 +196,7 @@ mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, ind
     modes,
     state,
   ) # indir="~/data/MRIP",
-  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr, y_prelim, species, modes, areas, outdir)
+  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr, y_prelim, species, modes, areas, waves, outdir)
   makeplots(combined_catch[[1]], mripdata[[2]], species, waves, outdir)
 }
 
