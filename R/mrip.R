@@ -95,12 +95,15 @@ return(list(catchall, effortall))
 #' @param endyr End year
 #' @param outdir where you want your output to go
 #' @param y_prelim The latest year in the mrip data (preliminary)
+#' @param species A vector of the species to include
+#' @param areas Strata in distance from shore
+#' @param modes Modes of fishing
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip(catchall, effortall)
+#' mrip_outlier(catchall, effortall)
 
-mrip <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, outdir) {
+mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, outdir) {
   catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -153,6 +156,8 @@ mrip <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, are
   
   effortall$YEAR <- as.factor(effortall$YEAR)
 return(list(combined_catch, outlierx))}
+
+
 
 #' Catch mripdata
 #'
