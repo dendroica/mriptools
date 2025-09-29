@@ -196,7 +196,8 @@ mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, ind
     modes,
     state,
   ) # indir="~/data/MRIP",
-  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr, y_prelim, species, modes, areas, waves, outdir)
+  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr,
+                                 y_prelim, species, modes, areas, waves, outdir)
   makeplots(combined_catch[[1]], mripdata[[2]], species, waves, outdir)
 }
 
