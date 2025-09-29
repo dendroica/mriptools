@@ -31,4 +31,3 @@ mrip(
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
   state = 24,
   outdir = my_outdir) # indir="~/data/mrip_old",
-
