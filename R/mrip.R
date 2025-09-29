@@ -146,7 +146,7 @@ mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, mo
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
   combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
-
+  combined_catch <- combined_catch[!is.na(combined_catch$STATUS),]
   ################## EFFORT
   effort_prelim <- effortall[effortall$YEAR == y_prelim, ]
   effort <- effortall[effortall$YEAR %in% styr:endyr, ]
@@ -383,7 +383,7 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
     comp <- merge(comp, baseline, by = mergeby, all.x = T)
     comp <- comp[!apply(comp, 1, function(x) any(is.na(x))),]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
-    totcat_outliers <- comp[comp$outlier == TRUE, ]
+    totcat_outliers <- comp[comp$outlier == TRUE & !is.na(comp$COMMON), ]
     write.csv(totcat_outliers, file.path(outdir, paste(x, "outliers.csv", sep = "-")))
     comp$var <- x
     return(comp)
