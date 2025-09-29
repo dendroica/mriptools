@@ -157,7 +157,48 @@ mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, mo
   effortall$YEAR <- as.factor(effortall$YEAR)
 return(list(combined_catch, outlierx))}
 
+#' MRIP outlier
+#'
+#' Creates output to help you identify outliers
+#' @param styr Start year
+#' @param endyr End year
+#' @param y_prelim The latest year in the mrip data (preliminary)
+#' @param species A vector of the species to include
+#' @param waves The MRIP waves to include
+#' @param areas Strata in distance from shore
+#' @param modes Modes of fishing
+#' @param state The FIPS code for the state of interest
+#' @param indir (optional) point to locally downloaded MRIP files
+#' @param outdir where your files should go
+#' @return Output files to explore the mrip data with the parameters entered
+#' @export
+#' @examples
+#' mrip(
+#'   styr = 2017,
+#'   endyr = 2024,
+#'   y_prelim = 2025,
+#'   species = c("BLACK SEA BASS", "TAUTOG"),
+#'   waves = c(2, 3, 4, 5, 6),
+#'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
+#'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
+#'   state = 24,
+#'   outdir = "~/output/mrip_ex"
+#' )
 
+mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, indir=NULL, outdir) {
+  mripdata <- mrip_data(
+    styr,
+    endyr,
+    y_prelim,
+    species = myspecies,
+    waves,
+    areas,
+    modes,
+    state = 34,
+  ) # indir="~/data/MRIP",
+  combined_catch <- mrip(mripdata[[1]], mripdata[[2]], styr, endyr, y_prelim, myspecies, modes, areas, outdir)
+  makeplots(combined_catch[[1]], mripdata[[2]], y, waves, outdir)
+}
 
 #' Catch mripdata
 #'
