@@ -13,7 +13,7 @@
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip_data(
+#' MRIPData(
 #'   styr = 2017,
 #'   endyr = 2024,
 #'   y_prelim = 2025,
@@ -25,7 +25,7 @@
 #'   outdir = "~/output/mrip_ex"
 #' )
 
-mrip_data <- function(
+MRIPData <- function(
     styr,
     endyr,
     y_prelim = NA,
@@ -186,7 +186,7 @@ return(list(combined_catch, outlierx))}
 #' )
 
 mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, indir=NULL, outdir) {
-  mripdata <- mrip_data(
+  mripdata <- MRIPData(
     styr,
     endyr,
     y_prelim,
