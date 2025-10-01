@@ -29,12 +29,12 @@ mrip_data <- function(
     styr,
     endyr,
     y_prelim = NA,
-    species, waves,
+    species,
+    waves,
     areas,
     modes,
     state,
-    indir = NULL,
-    outdir) {
+    indir = NULL) {
   myyrs <- c(styr:endyr, y_prelim)
   if (is.null(indir)) {
     indir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
@@ -195,7 +195,8 @@ mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, ind
     areas,
     modes,
     state,
-  ) # indir="~/data/MRIP",
+    indir
+  )
   combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr,
                                  y_prelim, species, modes, areas, waves, outdir)
   makeplots(combined_catch[[1]], mripdata[[2]], species, waves, outdir)
