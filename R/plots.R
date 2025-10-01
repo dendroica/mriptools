@@ -68,6 +68,7 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
   relplot <- function(wavenum, s) {
     df <- combined_catch[combined_catch$COMMON == s & combined_catch$WAVE == wavenum, ]
     #df$YEAR <- as.integer(df$YEAR)
+    if (nrow(df) > 0) {
     p <-
       ggplot(df, aes(x = YEAR, y = ESTREL)) +
       geom_point() +
@@ -78,12 +79,15 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
+  }
   
   # Loops through each species and produces a graph for each wave
   for (s in species) {
+    print(s)
     dir.create(file.path(outdir, s), showWarnings=F)
     pdf(file.path(outdir, s, "Releases.pdf"))
     for (w in waves) {
+      print(w)
       relplot(w, s)
     }
     dev.off()
