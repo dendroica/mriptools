@@ -13,6 +13,7 @@ mrip_outlier(
   species,
   modes,
   areas,
+  waves,
   outdir
 )
 }

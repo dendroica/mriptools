@@ -2,7 +2,7 @@
 % Please edit documentation in R/mrip.R
 \name{mrip}
 \alias{mrip}
-\title{MRIP outlier}
+\title{MRIP analysis}
 \usage{
 mrip(
   styr,
