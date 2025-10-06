@@ -5,23 +5,23 @@
 \title{MRIP data}
 \usage{
 MRIPData(
-  styr,
-  endyr,
-  y_prelim = NA,
+  start_yr,
+  end_yr,
+  prelim_yr = NA,
   species,
   waves,
   areas,
   modes,
   state,
-  indir = NULL
+  in_dir = NULL
 )
 }
 \arguments{
-\item{styr}{Start year}
+\item{start_yr}{Start year}
 
-\item{endyr}{End year}
+\item{end_yr}{End year}
 
-\item{y_prelim}{The latest year in the mrip data (preliminary)}
+\item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
 \item{species}{A vector of the species to include}
 
@@ -33,7 +33,7 @@ MRIPData(
 
 \item{state}{The FIPS code for the state of interest}
 
-\item{indir}{(optional) point to locally downloaded MRIP files}
+\item{in_dir}{(optional) point to locally downloaded MRIP files}
 }
 \value{
 Output files to explore the mrip data with the parameters entered
@@ -43,14 +43,13 @@ Creates output to help you identify outliers
 }
 \examples{
 MRIPData(
-  styr = 2017,
-  endyr = 2024,
-  y_prelim = 2025,
+  start_yr = 2017,
+  end_yr = 2024,
+  prelim_yr = 2025,
   species = c("BLACK SEA BASS", "TAUTOG"),
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
   state = 24,
-  outdir = "~/output/mrip_ex"
 )
 }

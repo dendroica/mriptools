@@ -7,9 +7,9 @@
 mrip_outlier(
   catchall,
   effortall,
-  styr,
-  endyr,
-  y_prelim,
+  start_yr,
+  end_yr,
+  prelim_yr,
   species,
   modes,
   areas,
@@ -22,11 +22,11 @@ mrip_outlier(
 
 \item{effortall}{Compiled MRIP effort data}
 
-\item{styr}{Start year}
+\item{start_yr}{Start year}
 
-\item{endyr}{End year}
+\item{end_yr}{End year}
 
-\item{y_prelim}{The latest year in the mrip data (preliminary)}
+\item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
 \item{species}{A vector of the species to include}
 

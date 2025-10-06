@@ -22,7 +22,6 @@
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
 #'   state = 24,
-#'   outdir = "~/output/mrip_ex"
 #' )
 
 MRIPData <- function(
