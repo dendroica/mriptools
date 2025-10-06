@@ -21,7 +21,7 @@ MRIPData(
 
 \item{end_yr}{End year}
 
-\item{prelim_yr}{The latest year in the mrip data (preliminary)}
+\item{prelim_yr}{The latest year in the MRIP data (preliminary)}
 
 \item{species}{A vector of the species to include}
 

@@ -3,7 +3,7 @@
 #' Creates output to help you identify outliers
 #' @param start_yr Start year
 #' @param end_yr End year
-#' @param prelim_yr The latest year in the mrip data (preliminary)
+#' @param prelim_yr The latest year in the MRIP data (preliminary)
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
