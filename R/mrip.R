@@ -21,7 +21,7 @@
 #'   waves = c(2, 3, 4, 5, 6),
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
-#'   state = 24,
+#'   state = 24
 #' )
 
 MRIPData <- function(
