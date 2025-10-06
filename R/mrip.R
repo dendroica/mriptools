@@ -1,9 +1,9 @@
 #' MRIP data
 #'
 #' Creates output to help you identify outliers
-#' @param styr Start year
-#' @param endyr End year
-#' @param y_prelim The latest year in the mrip data (preliminary)
+#' @param start_yr Start year
+#' @param end_yr End year
+#' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
@@ -14,9 +14,9 @@
 #' @export
 #' @examples
 #' MRIPData(
-#'   styr = 2017,
-#'   endyr = 2024,
-#'   y_prelim = 2025,
+#'   start_yr = 2017,
+#'   end_yr = 2024,
+#'   prelim_yr = 2025,
 #'   species = c("BLACK SEA BASS", "TAUTOG"),
 #'   waves = c(2, 3, 4, 5, 6),
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
@@ -26,16 +26,16 @@
 #' )
 
 MRIPData <- function(
-    styr,
-    endyr,
-    y_prelim = NA,
+    start_yr,
+    end_yr,
+    prelim_yr = NA,
     species,
     waves,
     areas,
     modes,
     state,
     indir = NULL) {
-  myyrs <- c(styr:endyr, y_prelim)
+  myyrs <- c(start_yr:end_yr, prelim_yr)
   if (is.null(indir)) {
     indir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
     tmp <- readLines(paste0(indir, "/"))
@@ -91,10 +91,10 @@ return(list(catchall, effortall))
 #' Creates output to help you identify outliers
 #' @param catchall Compiled MRIP catch data
 #' @param effortall Compiled MRIP effort data
-#' @param styr Start year
-#' @param endyr End year
+#' @param start_yr Start year
+#' @param end_yr End year
 #' @param outdir where you want your output to go
-#' @param y_prelim The latest year in the mrip data (preliminary)
+#' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
@@ -103,13 +103,13 @@ return(list(catchall, effortall))
 #' @examples
 #' mrip_outlier(catchall, effortall)
 
-mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, modes, areas, waves, outdir) {
-  catch_prelim <- catchall[catchall$YEAR == y_prelim, ] # year for comparison
+mrip_outlier <- function(catchall, effortall, start_yr, end_yr, prelim_yr, species, modes, areas, waves, outdir) {
+  catch_prelim <- catchall[catchall$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
   totcat_prelim <- aggregate(compute_subset, groupvar, sum)
-  myyrs <- styr:endyr
-  catch <- catchall[catchall$YEAR %in% styr:endyr, ] # years for baseline/ave
+  myyrs <- start_yr:end_yr
+  catch <- catchall[catchall$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
 
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
@@ -148,8 +148,8 @@ mrip_outlier <- function(catchall, effortall, styr, endyr, y_prelim, species, mo
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
   combined_catch <- combined_catch[!is.na(combined_catch$STATUS),]
   ################## EFFORT
-  effort_prelim <- effortall[effortall$YEAR == y_prelim, ]
-  effort <- effortall[effortall$YEAR %in% styr:endyr, ]
+  effort_prelim <- effortall[effortall$YEAR == prelim_yr, ]
+  effort <- effortall[effortall$YEAR %in% start_yr:end_yr, ]
 
   compute_subset <- effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
@@ -160,9 +160,9 @@ return(list(combined_catch, outlierx))}
 #' MRIP analysis
 #'
 #' Creates output to help you identify outliers
-#' @param styr Start year
-#' @param endyr End year
-#' @param y_prelim The latest year in the mrip data (preliminary)
+#' @param start_yr Start year
+#' @param end_yr End year
+#' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
@@ -174,9 +174,9 @@ return(list(combined_catch, outlierx))}
 #' @export
 #' @examples
 #' mrip(
-#'   styr = 2017,
-#'   endyr = 2024,
-#'   y_prelim = 2025,
+#'   start_yr = 2017,
+#'   end_yr = 2024,
+#'   prelim_yr = 2025,
 #'   species = c("BLACK SEA BASS", "TAUTOG"),
 #'   waves = c(2, 3, 4, 5, 6),
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
@@ -185,11 +185,11 @@ return(list(combined_catch, outlierx))}
 #'   outdir = "~/output/mrip_ex"
 #' )
 
-mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, indir=NULL, outdir) {
+mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, indir=NULL, outdir) {
   mripdata <- MRIPData(
-    styr,
-    endyr,
-    y_prelim,
+    start_yr,
+    end_yr,
+    prelim_yr,
     species,
     waves,
     areas,
@@ -197,8 +197,8 @@ mrip <- function(styr, endyr, y_prelim, species, waves, areas, modes, state, ind
     state,
     indir
   )
-  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], styr, endyr,
-                                 y_prelim, species, modes, areas, waves, outdir)
+  combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], start_yr, end_yr,
+                                 prelim_yr, species, modes, areas, waves, outdir)
   makeplots(combined_catch[[1]], mripdata[[2]], species, waves, outdir)
 }
 
