@@ -9,7 +9,7 @@
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
-#' @param indir (optional) point to locally downloaded MRIP files
+#' @param in_dir (optional) point to locally downloaded MRIP files
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
@@ -34,17 +34,17 @@ MRIPData <- function(
     areas,
     modes,
     state,
-    indir = NULL) {
+    in_dir = NULL) {
   myyrs <- c(start_yr:end_yr, prelim_yr)
-  if (is.null(indir)) {
-    indir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
-    tmp <- readLines(paste0(indir, "/"))
+  if (is.null(in_dir)) {
+    in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
+    tmp <- readLines(paste0(in_dir, "/"))
     fiels <- tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))]
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", fiels)
     yrs <- years(filenames, myyrs)
     # function(x, y, src, state, species, waves, areas, modes)
     vars <- list(
-      indir = indir,
+      in_dir = in_dir,
       state,
       species,
       waves,
@@ -54,10 +54,10 @@ MRIPData <- function(
     mripdata <- Map(readmripfiles, names(yrs), yrs, MoreArgs = vars)
     print("download complete")
   } else {
-    filenames <- list.files(indir)
+    filenames <- list.files(in_dir)
     yrs <- years(filenames, myyrs)
     vars <- list(
-      indir = indir,
+      in_dir = in_dir,
       state = state,
       species = species,
       waves = waves,
@@ -168,7 +168,7 @@ return(list(combined_catch, outlierx))}
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
-#' @param indir (optional) point to locally downloaded MRIP files
+#' @param in_dir (optional) point to locally downloaded MRIP files
 #' @param outdir where your files should go
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
@@ -185,7 +185,7 @@ return(list(combined_catch, outlierx))}
 #'   outdir = "~/output/mrip_ex"
 #' )
 
-mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, indir=NULL, outdir) {
+mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir=NULL, outdir) {
   mripdata <- MRIPData(
     start_yr,
     end_yr,
@@ -195,7 +195,7 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     areas,
     modes,
     state,
-    indir
+    in_dir
   )
   combined_catch <- mrip_outlier(mripdata[[1]], mripdata[[2]], start_yr, end_yr,
                                  prelim_yr, species, modes, areas, waves, outdir)
@@ -312,7 +312,7 @@ years <- function(filenames, myyrs) {
 readmripfiles <- function(
     x,
     y,
-    indir,
+    in_dir,
     state,
     species,
     waves,
@@ -322,12 +322,12 @@ readmripfiles <- function(
   print(x) # x <- names(yrs)
   print(y) # y <- yrs
 
-  path <- file.path(indir, x)
+  path <- file.path(in_dir, x)
 
   if (tools::file_ext(x) == "zip") {
     temp <- tempfile()
     temp2 <- tempfile()
-    if (grepl("^https", indir)) {
+    if (grepl("^https", in_dir)) {
       download.file(path, temp)
       unzip(zipfile = temp, exdir = temp2)
     } else {
