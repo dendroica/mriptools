@@ -40,9 +40,9 @@ myspecies <- c(
 my_outdir <- "~/output/mrip_ex"
 
 mrip(
-  styr = 2017,
-  endyr = 2024,
-  y_prelim = 2025,
+  start_yr = 2017,
+  end_yr = 2024,
+  prelim_yr = 2025,
   species = myspecies,
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
@@ -51,6 +51,7 @@ mrip(
   outdir = my_outdir
 ) # indir="~/data/MRIP",
 ```
+
 
 
 
