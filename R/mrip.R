@@ -23,7 +23,6 @@
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
 #'   state = 24
 #' )
-
 MRIPData <- function(
     start_yr,
     end_yr,
@@ -40,23 +39,23 @@ MRIPData <- function(
     website <- readLines(paste0(in_dir, "/"))
     files <- website[c(grep("zip", website), grep(".csv", website, fixed = TRUE))]
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", files)
-    } else {
-      filenames <- list.files(in_dir)
-    }
-    filenames <- years(filenames, time_pd)
-    # function(x, y, src, state, species, waves, areas, modes)
-    vars <- list(
-      in_dir = in_dir,
-      state,
-      species,
-      waves,
-      areas,
-      modes
-    )
-    mrip_data <- Map(readmripfiles, names(filenames), filenames, MoreArgs = vars)
-    #print("download complete")
-    names(mrip_data) <- names(filenames)
-    #print("read in complete")
+  } else {
+    filenames <- list.files(in_dir)
+  }
+  filenames <- years(filenames, time_pd)
+  # function(x, y, src, state, species, waves, areas, modes)
+  vars <- list(
+    in_dir = in_dir,
+    state,
+    species,
+    waves,
+    areas,
+    modes
+  )
+  mrip_data <- Map(readmripfiles, names(filenames), filenames, MoreArgs = vars)
+  # print("download complete")
+  names(mrip_data) <- names(filenames)
+  # print("read in complete")
 
   mrip_data <- list(
     mrip_data[which(grepl("mrip_catch_bywave", names(mrip_data)))],
@@ -67,12 +66,12 @@ MRIPData <- function(
   print("catch data compiled")
   catch <- catch[!duplicated(catch), ]
   print("catch data cleaned")
-  
+
   effort <- do.call(rbind, mrip_data[[2]])
   print("effort data compiled")
   effort <- effort[!duplicated(effort), ]
   print("effort data cleaned")
-return(list(catch, effort))
+  return(list(catch, effort))
 }
 
 #' MRIP outlier
@@ -92,7 +91,6 @@ return(list(catch, effort))
 #' @export
 #' @examples
 #' mrip_outlier(catch, effort)
-
 mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, out_dir) {
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
@@ -130,22 +128,23 @@ mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mo
   # Merge with the original mrip_data frame
   combined_catch <- merge(all_combinations, catch, all.x = TRUE)
   # Optionally, replace NA values with 0...
-  combined_catch <- combined_catch[combined_catch$COMMON %in% species,]
+  combined_catch <- combined_catch[combined_catch$COMMON %in% species, ]
   combined_catch$YEAR <- as.factor(combined_catch$YEAR)
   combined_catch$WAVE <- as.factor(combined_catch$WAVE)
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
   combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
-  combined_catch <- combined_catch[!is.na(combined_catch$STATUS),]
+  combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ]
   ################## EFFORT
   effort_prelim <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
-  
+
   effort$YEAR <- as.factor(effort$YEAR)
-return(list(combined_catch, outlierx))}
+  return(list(combined_catch, outlierx))
+}
 
 #' MRIP analysis
 #'
@@ -174,8 +173,7 @@ return(list(combined_catch, outlierx))}
 #'   state = 24,
 #'   out_dir = "~/output/mrip_ex"
 #' )
-
-mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir=NULL, out_dir) {
+mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir = NULL, out_dir) {
   mrip_data <- MRIPData(
     start_yr,
     end_yr,
@@ -187,8 +185,10 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     state,
     in_dir
   )
-  combined_catch <- mrip_outlier(mrip_data[[1]], mrip_data[[2]], start_yr, end_yr,
-                                 prelim_yr, species, modes, areas, waves, out_dir)
+  combined_catch <- mrip_outlier(
+    mrip_data[[1]], mrip_data[[2]], start_yr, end_yr,
+    prelim_yr, species, modes, areas, waves, out_dir
+  )
   makeplots(combined_catch[[1]], mrip_data[[2]], species, waves, out_dir)
 }
 
@@ -243,7 +243,7 @@ readcatch <- function(filen, state, species, waves) {
     \(x) as.numeric(gsub(",", "", x))
   )
   names(readin) <- toupper(names(readin))
-  readin <- subset(readin, ST == state & readin$WAVE %in% waves) #COMMON %in% species 
+  readin <- subset(readin, ST == state & readin$WAVE %in% waves) # COMMON %in% species
   return(readin)
 }
 
@@ -290,13 +290,13 @@ readmrip <- function(filen, state, species, waves, areas, modes) {
 years <- function(filenames, time_pd) {
   findfilenames <- regexpr("[0-9]{4}(_[0-9]{4})*", filenames)
   filenamesin <- regmatches(filenames, findfilenames)
-  filenames <- sapply(sapply(filenamesin, strsplit, split = "_"), as.integer)
-  multiyr <- filenames[which(sapply(filenames, length) > 1)]
-  singleyr <- filenames[which(sapply(filenames, length) < 2)]
-  filenames <- c(lapply(multiyr, \(x) x[1]:x[2]), singleyr)
-  names(filenames) <- filenames
-  filenames <- lapply(filenames, function(x) x[x %in% time_pd])
-  filenames <- Filter(length, filenames)
+  yrs <- sapply(sapply(filenamesin, strsplit, split = "_"), as.integer)
+  multiyr <- yrs[which(sapply(yrs, length) > 1)]
+  singleyr <- yrs[which(sapply(yrs, length) < 2)]
+  yrs <- c(lapply(multiyr, \(x) x[1]:x[2]), singleyr)
+  names(yrs) <- filenames
+  yrs <- lapply(yrs, function(x) x[x %in% time_pd])
+  filenames <- Filter(length, yrs)
 }
 
 readmripfiles <- function(
@@ -308,7 +308,6 @@ readmripfiles <- function(
     waves,
     areas,
     modes) {
-  
   print(x) # x <- names(filenames)
   print(y) # y <- filenames
 
@@ -373,7 +372,7 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
     comp <- totcat_prelim[, mergeby]
     comp$val <- totcat_prelim[, x]
     comp <- merge(comp, baseline, by = mergeby, all.x = T)
-    comp <- comp[!apply(comp, 1, function(x) any(is.na(x))),]
+    comp <- comp[!apply(comp, 1, function(x) any(is.na(x))), ]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
     totcat_outliers <- comp[comp$outlier == TRUE & !is.na(comp$COMMON), ]
     write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
