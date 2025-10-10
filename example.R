@@ -25,7 +25,7 @@ mrip(
   start_yr = 2017,
   end_yr = 2024,
   prelim_yr = 2025,
-  species = myspecies,
+  species,
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
