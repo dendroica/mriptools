@@ -5,8 +5,8 @@
 \title{MRIP outlier}
 \usage{
 mrip_outlier(
-  catchall,
-  effortall,
+  catch,
+  effort,
   start_yr,
   end_yr,
   prelim_yr,
@@ -14,13 +14,13 @@ mrip_outlier(
   modes,
   areas,
   waves,
-  outdir
+  out_dir
 )
 }
 \arguments{
-\item{catchall}{Compiled MRIP catch data}
+\item{catch}{Compiled MRIP catch data}
 
-\item{effortall}{Compiled MRIP effort data}
+\item{effort}{Compiled MRIP effort data}
 
 \item{start_yr}{Start year}
 
@@ -34,7 +34,7 @@ mrip_outlier(
 
 \item{areas}{Strata in distance from shore}
 
-\item{outdir}{where you want your output to go}
+\item{out_dir}{where you want your output to go}
 }
 \value{
 Output files to explore the mrip data with the parameters entered
@@ -43,5 +43,5 @@ Output files to explore the mrip data with the parameters entered
 Creates output to help you identify outliers
 }
 \examples{
-mrip_outlier(catchall, effortall)
+mrip_outlier(catch, effort)
 }

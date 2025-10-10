@@ -13,7 +13,7 @@
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip_data(
+#' MRIPData(
 #'   start_yr = 2017,
 #'   end_yr = 2024,
 #'   prelim_yr = 2025,
@@ -24,7 +24,7 @@
 #'   state = 24
 #' )
 
-mrip_data <- function(
+MRIPData <- function(
     start_yr,
     end_yr,
     prelim_yr = NA,
@@ -82,7 +82,7 @@ return(list(catch, effort))
 #' @param effort Compiled MRIP effort data
 #' @param start_yr Start year
 #' @param end_yr End year
-#' @param outdir where you want your output to go
+#' @param out_dir where you want your output to go
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param areas Strata in distance from shore
@@ -92,7 +92,7 @@ return(list(catch, effort))
 #' @examples
 #' mrip_outlier(catch, effort)
 
-mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, outdir) {
+mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, out_dir) {
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -111,7 +111,7 @@ mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mo
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   factyors <- c("COMMON", "WAVE")
   compute_subset <- res[, c(factyors, vats)]
-  outlierx <- outlie(vats, compute_subset, totcat_prelim, factyors, outdir)
+  outlierx <- outlie(vats, compute_subset, totcat_prelim, factyors, out_dir)
 
   ##### TOTAL CATCH COMPARISONS######
 
@@ -141,7 +141,7 @@ mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mo
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
-  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), outdir)
+  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
   
   effort$YEAR <- as.factor(effort$YEAR)
 return(list(combined_catch, outlierx))}
@@ -158,7 +158,7 @@ return(list(combined_catch, outlierx))}
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
 #' @param in_dir (optional) point to locally downloaded MRIP files
-#' @param outdir where your files should go
+#' @param out_dir where your files should go
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
@@ -171,11 +171,11 @@ return(list(combined_catch, outlierx))}
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
 #'   state = 24,
-#'   outdir = "~/output/mrip_ex"
+#'   out_dir = "~/output/mrip_ex"
 #' )
 
-mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir=NULL, outdir) {
-  mrip_data <- mrip_data(
+mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir=NULL, out_dir) {
+  mrip_data <- MRIPData(
     start_yr,
     end_yr,
     prelim_yr,
@@ -187,8 +187,8 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     in_dir
   )
   combined_catch <- mrip_outlier(mrip_data[[1]], mrip_data[[2]], start_yr, end_yr,
-                                 prelim_yr, species, modes, areas, waves, outdir)
-  makeplots(combined_catch[[1]], mrip_data[[2]], species, waves, outdir)
+                                 prelim_yr, species, modes, areas, waves, out_dir)
+  makeplots(combined_catch[[1]], mrip_data[[2]], species, waves, out_dir)
 }
 
 #' Catch mrip_data
@@ -362,7 +362,7 @@ agg <- function(vats, ids, compute_subset) {
   return(agged)
 }
 
-outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
+outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
   df <- agg(vats, mergeby, compute_subset)
   lapply(vats, function(x) {
     sumstats <- df[, x]
@@ -375,7 +375,7 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, outdir) {
     comp <- comp[!apply(comp, 1, function(x) any(is.na(x))),]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
     totcat_outliers <- comp[comp$outlier == TRUE & !is.na(comp$COMMON), ]
-    write.csv(totcat_outliers, file.path(outdir, paste(x, "outliers.csv", sep = "-")))
+    write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
     comp$var <- x
     return(comp)
   })

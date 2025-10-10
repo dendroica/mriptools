@@ -14,7 +14,7 @@ mrip(
   modes,
   state,
   in_dir = NULL,
-  outdir
+  out_dir
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ mrip(
 
 \item{in_dir}{(optional) point to locally downloaded MRIP files}
 
-\item{outdir}{where your files should go}
+\item{out_dir}{where your files should go}
 }
 \value{
 Output files to explore the mrip data with the parameters entered
@@ -54,6 +54,6 @@ mrip(
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
   state = 24,
-  outdir = "~/output/mrip_ex"
+  out_dir = "~/output/mrip_ex"
 )
 }
