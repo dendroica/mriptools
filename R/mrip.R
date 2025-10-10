@@ -34,13 +34,13 @@ MRIPData <- function(
     modes,
     state,
     in_dir = NULL) {
-  myyrs <- c(start_yr:end_yr, prelim_yr)
+  time_pd <- c(start_yr:end_yr, prelim_yr)
   if (is.null(in_dir)) {
     in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
     tmp <- readLines(paste0(in_dir, "/"))
     fiels <- tmp[c(grep("zip", tmp), grep(".csv", tmp, fixed = TRUE))]
     filenames <- gsub(".*(mr[a-z0-9_]*[.][a-z]{3}).*", "\\1", fiels)
-    yrs <- years(filenames, myyrs)
+    yrs <- years(filenames, time_pd)
     # function(x, y, src, state, species, waves, areas, modes)
     vars <- list(
       in_dir = in_dir,
@@ -54,7 +54,7 @@ MRIPData <- function(
     print("download complete")
   } else {
     filenames <- list.files(in_dir)
-    yrs <- years(filenames, myyrs)
+    yrs <- years(filenames, time_pd)
     vars <- list(
       in_dir = in_dir,
       state = state,
@@ -107,7 +107,7 @@ mrip_outlier <- function(catchall, effortall, start_yr, end_yr, prelim_yr, speci
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
   totcat_prelim <- aggregate(compute_subset, groupvar, sum)
-  myyrs <- start_yr:end_yr
+  time_pd <- start_yr:end_yr
   catch <- catchall[catchall$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
 
   # For looking for outliers by species across the modes and areas
@@ -130,7 +130,7 @@ mrip_outlier <- function(catchall, effortall, start_yr, end_yr, prelim_yr, speci
 
   all_combinations <- expand.grid(
     COMMON = species,
-    YEAR = myyrs,
+    YEAR = time_pd,
     WAVE = waves,
     MODE_FX_F = modes,
     AREA_X_F = areas
@@ -296,7 +296,7 @@ readmrip <- function(filen, state, species, waves, areas, modes) {
   }
 }
 
-years <- function(filenames, myyrs) {
+years <- function(filenames, time_pd) {
   findyrs <- regexpr("[0-9]{4}(_[0-9]{4})*", filenames)
   yrsin <- regmatches(filenames, findyrs)
   yrs <- sapply(sapply(yrsin, strsplit, split = "_"), as.integer)
@@ -304,7 +304,7 @@ years <- function(filenames, myyrs) {
   singleyr <- yrs[which(sapply(yrs, length) < 2)]
   yrs <- c(lapply(multiyr, \(x) x[1]:x[2]), singleyr)
   names(yrs) <- filenames
-  yrs <- lapply(yrs, function(x) x[x %in% myyrs])
+  yrs <- lapply(yrs, function(x) x[x %in% time_pd])
   yrs <- Filter(length, yrs)
 }
 
