@@ -34,6 +34,8 @@ mrip_outlier(
 
 \item{areas}{Strata in distance from shore}
 
+\item{waves}{The MRIP waves to include}
+
 \item{out_dir}{where you want your output to go}
 }
 \value{

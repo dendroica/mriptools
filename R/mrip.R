@@ -82,11 +82,12 @@ return(list(catch, effort))
 #' @param effort Compiled MRIP effort data
 #' @param start_yr Start year
 #' @param end_yr End year
-#' @param out_dir where you want your output to go
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
-#' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
+#' @param areas Strata in distance from shore
+#' @param waves The MRIP waves to include
+#' @param out_dir where you want your output to go
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
