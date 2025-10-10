@@ -29,6 +29,6 @@ mrip(
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
-  state = 34,
+  state = 24,
   out_dir = my_outdir) # in_dir="~/data/mrip_old",
 

@@ -96,7 +96,7 @@ mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mo
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
   totcat_prelim <- aggregate(compute_subset, groupvar, sum)
-  time_pd <- start_yr:end_yr
+  time_pd <- c(start_yr:end_yr, prelim_yr)
   base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
 
   # For looking for outliers by species across the modes and areas
@@ -134,7 +134,7 @@ mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mo
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
   combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
-  combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ]
+  #combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
   ################## EFFORT
   effort_prelim <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
