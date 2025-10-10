@@ -39,7 +39,7 @@ mrip_outlier(
 \item{out_dir}{where you want your output to go}
 }
 \value{
-Output files to explore the mrip data with the parameters entered
+Outlier flagging
 }
 \description{
 Creates output to help you identify outliers

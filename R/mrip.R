@@ -10,7 +10,7 @@
 #' @param modes Modes of fishing
 #' @param state The FIPS code for the state of interest
 #' @param in_dir (optional) point to locally downloaded MRIP files
-#' @return Output files to explore the mrip data with the parameters entered
+#' @return List of catch and effort data
 #' @export
 #' @examples
 #' MRIPData(
@@ -88,7 +88,7 @@ return(list(catch, effort))
 #' @param areas Strata in distance from shore
 #' @param waves The MRIP waves to include
 #' @param out_dir where you want your output to go
-#' @return Output files to explore the mrip data with the parameters entered
+#' @return Outlier flagging
 #' @export
 #' @examples
 #' mrip_outlier(catch, effort)

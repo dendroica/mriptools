@@ -36,7 +36,7 @@ MRIPData(
 \item{in_dir}{(optional) point to locally downloaded MRIP files}
 }
 \value{
-Output files to explore the mrip data with the parameters entered
+List of catch and effort data
 }
 \description{
 Creates output to help you identify outliers
