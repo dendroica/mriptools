@@ -5,7 +5,6 @@
 #' @param effort this is the data frame of all of the effort data within the time period of interest
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
-#' @param areas Strata in distance from shore
 #' @param outdir where your files should go
 #' @return Output files to explore the data with the parameters entered
 #' @import ggplot2

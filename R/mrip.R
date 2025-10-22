@@ -111,7 +111,7 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
-  return(list(combined_catch, outlierx, trips))
+  return(list(outlierx, trips))
 }
 
 #' MRIP analysis
@@ -155,8 +155,8 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
   combined_catch <- MRIPOutlier(
     mrip_data[[1]], mrip_data[[2]], start_yr, end_yr, prelim_yr, species
   )
+  writeout(combined_catch[[1]], out_dir)
   writeout(combined_catch[[2]], out_dir)
-  writeout(combined_catch[[3]], out_dir)
   makeplots(mrip_data[[1]], mrip_data[[2]], species, waves, out_dir)
 }
 
