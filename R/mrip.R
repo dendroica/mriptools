@@ -84,30 +84,30 @@ MRIPData <- function(
 #' @examples
 #' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
-  base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
+  base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for base_catch/ave
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
-  aggregate_prelim <- aggregate(catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")],
-                             list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE), sum)
+  vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
+  prelim_catch <- aggregate(prelim_catch[, vars_of_interest],
+                             list(COMMON = prelim_catch$COMMON, WAVE = prelim_catch$WAVE), sum)
   
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
-  res <- aggregate(
-    base_catch[, c("TOT_CAT", "LANDING", "ESTREL")],
+  base_catch <- aggregate(
+    base_catch[, vars_of_interest],
     list(COMMON = base_catch$COMMON, YEAR = base_catch$YEAR, WAVE = base_catch$WAVE),
     sum
   )
   # Join mrip_data with calculated harvest_stats (mean, sd, and n)
-  vats <- c("TOT_CAT", "LANDING", "ESTREL")
-  factyors <- c("COMMON", "WAVE")
-  compute_subset <- res[, c(factyors, vats)]
-  outlierx <- outlie(vats, compute_subset, aggregate_prelim, factyors)
-  effort_prelim <- effort[effort$YEAR == prelim_yr, ]
+  
+  aggregate_factors <- c("COMMON", "WAVE")
+  base_catch <- base_catch[, c(aggregate_factors, vars_of_interest)]
+  catch_outlier <- outlie(base_catch, prelim_catch, vars_of_interest, aggregate_factors)
+  
+  prelim_effort <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
-
-  compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
-  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"))
-  outlierx <- c(outlierx, trips)
-  return(outlierx)
+  effort_outlier <- outlie(base_effort, prelim_effort, "ESTRIPS", c("WAVE", "MODE_FX_F", "AREA_X_F"))
+  outliers <- c(catch_outlier, effort_outlier)
+  return(outliers)
 }
 
 #' MRIP analysis
@@ -312,27 +312,27 @@ tau <- function(n, sum_catch, mean_catch, sd_catch) {
   return(outlier)
 }
 
-agg <- function(vats, ids, compute_subset) {
-  agged <- aggregate(compute_subset[, vats],
-    by = lapply(ids, \(x) compute_subset[, x]),
+agg <- function(vars_of_interest, ids, base_catch) {
+  agged <- aggregate(base_catch[, vars_of_interest],
+    by = lapply(ids, \(x) base_catch[, x]),
     FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
   )
   names(agged)[1:length(ids)] <- ids
-  namefill <- (length(ids) + 1):(length(ids) + length(vats))
-  names(agged)[namefill] <- vats
+  namefill <- (length(ids) + 1):(length(ids) + length(vars_of_interest))
+  names(agged)[namefill] <- vars_of_interest
   return(agged)
 }
 
-outlie <- function(vats, compute_subset, totcat_prelim, mergeby) {
-  df <- agg(vats, mergeby, compute_subset)
-  lapply(vats, function(x) {
+outlie <- function(base_catch, totcat_prelim, vars_of_interest, mergeby) {
+  df <- agg(vars_of_interest, mergeby, base_catch)
+  lapply(vars_of_interest, function(x) {
     sumstats <- df[, x]
-    baseline <- cbind(df[, mergeby], sumstats)
-    baseline <- baseline[!is.na(baseline$n), ]
+    base_catch <- cbind(df[, mergeby], sumstats)
+    base_catch <- base_catch[!is.na(base_catch$n), ]
 
     comp <- totcat_prelim[, mergeby]
     comp$val <- totcat_prelim[, x]
-    comp <- merge(comp, baseline, by = mergeby, all.x = T)
+    comp <- merge(comp, base_catch, by = mergeby, all.x = T)
     comp <- comp[!apply(comp, 1, function(x) any(is.na(x))), ]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
     comp$var <- x
