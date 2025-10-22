@@ -4,12 +4,12 @@
 \alias{makeplots}
 \title{MRIP data visualization}
 \usage{
-makeplots(combined_catch, effortall, species, waves, outdir)
+makeplots(catch, effort, species, waves, outdir)
 }
 \arguments{
-\item{combined_catch}{this is the data frame of all of the catch data within the time period of interest}
+\item{catch}{this is the data frame of all of the catch data within the time period of interest}
 
-\item{effortall}{this is the data frame of all of the effort data within the time period of interest}
+\item{effort}{this is the data frame of all of the effort data within the time period of interest}
 
 \item{species}{A vector of the species to include}
 

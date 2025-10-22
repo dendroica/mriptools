@@ -106,37 +106,11 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
   factyors <- c("COMMON", "WAVE")
   compute_subset <- res[, c(factyors, vats)]
   outlierx <- outlie(vats, compute_subset, totcat_prelim, factyors, out_dir)
-
-  ##### TOTAL CATCH COMPARISONS######
-
-  # prelim calculations###########
-  # totcat_notCommon <- totcat[is.na(totcat$n), ]
-
-  all_combinations <- expand.grid(
-    COMMON = species,
-    YEAR = time_pd,
-    WAVE = waves,
-    MODE_FX_F = modes,
-    AREA_X_F = areas
-  )
-
-  # Merge with the original mrip_data frame
-  combined_catch <- merge(all_combinations, catch, all.x = TRUE)
-  # Optionally, replace NA values with 0...
-  combined_catch <- combined_catch[combined_catch$COMMON %in% species, ]
-  combined_catch$YEAR <- as.factor(combined_catch$YEAR)
-  combined_catch$WAVE <- as.factor(combined_catch$WAVE)
-  combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
-  combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
-  combined_catch$COMMON <- as.factor(combined_catch$COMMON)
-  #combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
-  ################## EFFORT
   effort_prelim <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
-  effort$YEAR <- as.factor(effort$YEAR)
   return(list(combined_catch, outlierx, trips))
 }
 
@@ -183,7 +157,7 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
   )
   writeout(combined_catch[[2]], out_dir)
   writeout(combined_catch[[3]], out_dir)
-  makeplots(combined_catch[[1]], mrip_data[[2]], species, waves, out_dir)
+  makeplots(mrip_data[[1]], mrip_data[[2]], species, waves, out_dir)
 }
 
 #' Catch mrip_data

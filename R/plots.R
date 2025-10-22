@@ -1,8 +1,8 @@
 #' MRIP data visualization
 #'
 #' Plots of data over the time span
-#' @param combined_catch this is the data frame of all of the catch data within the time period of interest
-#' @param effortall this is the data frame of all of the effort data within the time period of interest
+#' @param catch this is the data frame of all of the catch data within the time period of interest
+#' @param effort this is the data frame of all of the effort data within the time period of interest
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
@@ -10,7 +10,34 @@
 #' @return Output files to explore the data with the parameters entered
 #' @import ggplot2
 #' @export
-makeplots <- function(combined_catch, effortall, species, waves, outdir) {
+makeplots <- function(catch, effort, species, waves, outdir) {
+  time_pd <- unique(catch$YEAR)
+  modes <- unique(effort$MODE_FX_F)
+  areas <- unique(effort$AREA_X_F)
+  ##### TOTAL CATCH COMPARISONS######
+  
+  # prelim calculations###########
+  # totcat_notCommon <- totcat[is.na(totcat$n), ]
+  
+  all_combinations <- expand.grid(
+    COMMON = species,
+    YEAR = time_pd,
+    WAVE = waves,
+    MODE_FX_F = modes,
+    AREA_X_F = areas
+  )
+  
+  # Merge with the original mrip_data frame
+  combined_catch <- merge(all_combinations, catch, all.x = TRUE)
+  # Optionally, replace NA values with 0...
+  combined_catch <- combined_catch[combined_catch$COMMON %in% species, ]
+  combined_catch$YEAR <- as.factor(combined_catch$YEAR)
+  combined_catch$WAVE <- as.factor(combined_catch$WAVE)
+  combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
+  combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
+  combined_catch$COMMON <- as.factor(combined_catch$COMMON)
+  #combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
+  ################## EFFORT
   # Wanted to graph the outputs to see how catch levels & PSEs compare across years by wave, mode, and area
   # Graphed according to the species list, waves, areas, and modes you set in the beginning section of code
   
@@ -93,9 +120,9 @@ makeplots <- function(combined_catch, effortall, species, waves, outdir) {
     dev.off()
   }
   # closes the PDF device
-  
+  #effort$YEAR <- as.factor(effort$YEAR)
   effplot <- function(wavenum) {
-    df <- effortall[effortall$WAVE == wavenum, ]
+    df <- effort[effort$WAVE == wavenum, ]
     #df$YEAR <- as.integer(df$YEAR)
     p <-
       ggplot(df, aes(x = YEAR, y = ESTRIPS)) +
