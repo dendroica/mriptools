@@ -16,8 +16,6 @@ makeplots(catch, effort, species, waves, outdir)
 \item{waves}{The MRIP waves to include}
 
 \item{outdir}{where your files should go}
-
-\item{areas}{Strata in distance from shore}
 }
 \value{
 Output files to explore the data with the parameters entered
