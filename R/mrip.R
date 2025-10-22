@@ -384,7 +384,9 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
 #'   out_dir = "~/output/mrip_ex"
 #' )
 writeout <- function(comp, out_dir) {
-  x <- comp$var[1]
-  totcat_outliers <- comp[which(comp$outlier), ]
+  lapply(comp, function(y) {
+  x <- y$var[1]
+  totcat_outliers <- y[which(y$outlier), ]
   write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
+  })
 }
