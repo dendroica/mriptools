@@ -13,8 +13,7 @@ MRIPOutlier(
   species,
   modes,
   areas,
-  waves,
-  out_dir
+  waves
 )
 }
 \arguments{
@@ -35,8 +34,6 @@ MRIPOutlier(
 \item{areas}{Strata in distance from shore}
 
 \item{waves}{The MRIP waves to include}
-
-\item{out_dir}{where you want your output to go}
 }
 \value{
 Outlier flagging
@@ -45,5 +42,5 @@ Outlier flagging
 Creates output to help you identify outliers
 }
 \examples{
-MRIPOutlier(catch, effort)
+MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves)
 }
