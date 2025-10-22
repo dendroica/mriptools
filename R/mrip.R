@@ -85,7 +85,7 @@ MRIPData <- function(
 #' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
   base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
-  catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
+  prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   aggregate_prelim <- aggregate(catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")],
                              list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE), sum)
   
@@ -100,7 +100,7 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   factyors <- c("COMMON", "WAVE")
   compute_subset <- res[, c(factyors, vats)]
-  outlierx <- outlie(vats, catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")], aggregate_prelim, factyors)
+  outlierx <- outlie(vats, compute_subset, aggregate_prelim, factyors)
   effort_prelim <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
 
