@@ -90,8 +90,8 @@ MRIPData <- function(
 #' @return Outlier flagging
 #' @export
 #' @examples
-#' mrip_outlier(catch, effort)
-mrip_outlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, out_dir) {
+#' MRIPOutlier(catch, effort)
+MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, out_dir) {
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
