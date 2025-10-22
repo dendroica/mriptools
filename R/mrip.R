@@ -84,13 +84,11 @@ MRIPData <- function(
 #' @examples
 #' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
-  catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
-  compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
-  groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
-  totcat_prelim <- aggregate(compute_subset, groupvar, sum)
-  time_pd <- c(start_yr:end_yr, prelim_yr)
   base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for baseline/ave
-
+  catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
+  aggregate_prelim <- aggregate(catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")],
+                             list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE), sum)
+  
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
   res <- aggregate(
@@ -102,12 +100,12 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
   vats <- c("TOT_CAT", "LANDING", "ESTREL")
   factyors <- c("COMMON", "WAVE")
   compute_subset <- res[, c(factyors, vats)]
-  outlierx <- outlie(vats, compute_subset, totcat_prelim, factyors, out_dir)
+  outlierx <- outlie(vats, catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")], aggregate_prelim, factyors)
   effort_prelim <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
-  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
+  trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"))
   outlierx <- c(outlierx, trips)
   return(outlierx)
 }
@@ -325,7 +323,7 @@ agg <- function(vats, ids, compute_subset) {
   return(agged)
 }
 
-outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
+outlie <- function(vats, compute_subset, totcat_prelim, mergeby) {
   df <- agg(vats, mergeby, compute_subset)
   lapply(vats, function(x) {
     sumstats <- df[, x]
