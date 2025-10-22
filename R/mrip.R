@@ -39,7 +39,7 @@ MRIPData <- function(
   } else {
     filenames <- list.files(in_dir)
   }
-  filenames <- years(filenames, time_pd)
+  filenames <- MatchYrs(filenames, time_pd)
   # function(x, y, src, state, species, waves, areas, modes)
   vars <- list(
     in_dir = in_dir,
@@ -48,7 +48,7 @@ MRIPData <- function(
     areas,
     modes
   )
-  mrip_data <- Map(readmripfiles, names(filenames), filenames, MoreArgs = vars)
+  mrip_data <- ReadInMRIP(filenames, vars)
   # print("download complete")
   names(mrip_data) <- names(filenames)
   # print("read in complete")
@@ -231,7 +231,7 @@ readeffort <- function(filen, state, waves, areas, modes) {
   return(readin)
 }
 
-readmrip <- function(filen, state, waves, areas, modes) {
+readmripdata <- function(filen, state, waves, areas, modes) {
   if (length(grep("mrip_catch_bywave_", filen)) > 0) {
     mrip_data <- readcatch(
       filen,
@@ -249,19 +249,23 @@ readmrip <- function(filen, state, waves, areas, modes) {
   }
 }
 
-years <- function(filenames, time_pd) {
-  findfilenames <- regexpr("[0-9]{4}(_[0-9]{4})*", filenames)
-  filenamesin <- regmatches(filenames, findfilenames)
-  yrs <- sapply(sapply(filenamesin, strsplit, split = "_"), as.integer)
+MatchYrs <- function(filenames, time_pd) {
+  yr_regex <- regexpr("[0-9]{4}(_[0-9]{4})*", filenames)
+  yrs <- regmatches(filenames, yr_regex)
+  yrs <- sapply(sapply(yrs, strsplit, split = "_"), as.integer)
   multiyr <- yrs[which(sapply(yrs, length) > 1)]
-  singleyr <- yrs[which(sapply(yrs, length) < 2)]
-  yrs <- c(lapply(multiyr, \(x) x[1]:x[2]), singleyr)
+  single_yr <- yrs[which(sapply(yrs, length) < 2)]
+  yrs <- c(lapply(multiyr, \(x) x[1]:x[2]), single_yr)
   names(yrs) <- filenames
-  yrs <- lapply(yrs, function(x) x[x %in% time_pd])
+  yrs <- lapply(yrs, \(x) x[x %in% time_pd])
   filenames <- Filter(length, yrs)
 }
 
-readmripfiles <- function(
+ReadInMRIP <- function(filenames, vars) {
+  Map(ReadMRIP, names(filenames), filenames, MoreArgs = vars)
+}
+
+ReadMRIP <- function(
     x,
     y,
     in_dir,
@@ -283,11 +287,11 @@ readmripfiles <- function(
     } else {
       unzip(zipfile = path, exdir = temp2)
     }
-    findfiles <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
-    files <- list.files(temp2)[findfiles]
-    mrip_data <- do.call(rbind, lapply(files, function(z) {
-      filepath <- file.path(temp2, z)
-      mrip_data <- readmrip(filepath, state, waves, areas, modes)
+    match_files <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
+    files_that_match <- list.files(temp2)[match_files]
+    mrip_data <- do.call(rbind, lapply(files_that_match, function(z) {
+      file_path <- file.path(temp2, z)
+      mrip_data <- readmripdata(file_path, state, waves, areas, modes)
       print(mrip_data[1:5, 1:12])
       return(mrip_data)
     }))
