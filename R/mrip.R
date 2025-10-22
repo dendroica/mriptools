@@ -84,9 +84,6 @@ MRIPData <- function(
 #' @examples
 #' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
-  modes <- unique(effort$MODE_FX_F)
-  areas <- unique(effort$AREA_X_F)
-  waves <- unique(effort$WAVE)
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -359,8 +356,8 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
 #' )
 writeout <- function(comp, out_dir) {
   lapply(comp, function(y) {
-  x <- y$var[1]
-  totcat_outliers <- y[which(y$outlier), ]
-  write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
+    x <- y$var[1]
+    totcat_outliers <- y[which(y$outlier), ]
+    write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
   })
 }
