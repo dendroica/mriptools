@@ -79,14 +79,14 @@ MRIPData <- function(
 #' @param end_yr End year
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
-#' @param modes Modes of fishing
-#' @param areas Strata in distance from shore
-#' @param waves The MRIP waves to include
 #' @return Outlier flagging
 #' @export
 #' @examples
-#' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves)
-MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves) {
+#' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
+MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
+  modes <- unique(effort$MODE_FX_F)
+  areas <- unique(effort$AREA_X_F)
+  waves <- unique(effort$WAVE)
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -179,8 +179,7 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     in_dir
   )
   combined_catch <- MRIPOutlier(
-    mrip_data[[1]], mrip_data[[2]], start_yr, end_yr,
-    prelim_yr, species, modes, areas, waves
+    mrip_data[[1]], mrip_data[[2]], start_yr, end_yr, prelim_yr, species
   )
   writeout(combined_catch[[2]], out_dir)
   writeout(combined_catch[[3]], out_dir)

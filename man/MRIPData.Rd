@@ -8,7 +8,6 @@ MRIPData(
   start_yr,
   end_yr,
   prelim_yr = NA,
-  species,
   waves,
   areas,
   modes,

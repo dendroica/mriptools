@@ -4,17 +4,7 @@
 \alias{MRIPOutlier}
 \title{MRIP outlier}
 \usage{
-MRIPOutlier(
-  catch,
-  effort,
-  start_yr,
-  end_yr,
-  prelim_yr,
-  species,
-  modes,
-  areas,
-  waves
-)
+MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 }
 \arguments{
 \item{catch}{Compiled MRIP catch data}
@@ -28,12 +18,6 @@ MRIPOutlier(
 \item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
 \item{species}{A vector of the species to include}
-
-\item{modes}{Modes of fishing}
-
-\item{areas}{Strata in distance from shore}
-
-\item{waves}{The MRIP waves to include}
 }
 \value{
 Outlier flagging
@@ -42,5 +26,5 @@ Outlier flagging
 Creates output to help you identify outliers
 }
 \examples{
-MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves)
+MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
 }
