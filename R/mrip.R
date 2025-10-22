@@ -4,7 +4,6 @@
 #' @param start_yr Start year
 #' @param end_yr End year
 #' @param prelim_yr The latest year in the MRIP data (preliminary)
-#' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
 #' @param modes Modes of fishing
@@ -17,7 +16,6 @@
 #'   start_yr = 2017,
 #'   end_yr = 2024,
 #'   prelim_yr = 2025,
-#'   species = c("BLACK SEA BASS", "TAUTOG"),
 #'   waves = c(2, 3, 4, 5, 6),
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
@@ -47,7 +45,6 @@ MRIPData <- function(
   vars <- list(
     in_dir = in_dir,
     state,
-    species,
     waves,
     areas,
     modes
@@ -176,7 +173,6 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     start_yr,
     end_yr,
     prelim_yr,
-    species,
     waves,
     areas,
     modes,
@@ -198,7 +194,7 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
 #' need same number of columns for this to work
 #'
 #' @noRd
-readcatch <- function(filen, state, species, waves) {
+readcatch <- function(filen, state, waves) {
   readin <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
   # na = "",
@@ -268,12 +264,11 @@ readeffort <- function(filen, state, waves, areas, modes) {
   return(readin)
 }
 
-readmrip <- function(filen, state, species, waves, areas, modes) {
+readmrip <- function(filen, state, waves, areas, modes) {
   if (length(grep("mrip_catch_bywave_", filen)) > 0) {
     mrip_data <- readcatch(
       filen,
       state = state,
-      species = species,
       waves = waves
     )
   } else if (length(grep("mrip_effort_bywave_", filen)) > 0) {
@@ -304,7 +299,6 @@ readmripfiles <- function(
     y,
     in_dir,
     state,
-    species,
     waves,
     areas,
     modes) {
@@ -326,14 +320,14 @@ readmripfiles <- function(
     files <- list.files(temp2)[findfiles]
     mrip_data <- do.call(rbind, lapply(files, function(z) {
       filepath <- file.path(temp2, z)
-      mrip_data <- readmrip(filepath, state, species, waves, areas, modes)
+      mrip_data <- readmrip(filepath, state, waves, areas, modes)
       print(mrip_data[1:5, 1:12])
       return(mrip_data)
     }))
     unlink(temp)
     unlink(temp2)
   } else {
-    mrip_data <- readmrip(path, state, species, waves, areas, modes)
+    mrip_data <- readmrip(path, state, waves, areas, modes)
     print(mrip_data[1:5, 1:12])
   }
   # print(mrip_data[1:5,1:10])
