@@ -86,12 +86,11 @@ MRIPData <- function(
 #' @param modes Modes of fishing
 #' @param areas Strata in distance from shore
 #' @param waves The MRIP waves to include
-#' @param out_dir where you want your output to go
 #' @return Outlier flagging
 #' @export
 #' @examples
-#' MRIPOutlier(catch, effort)
-MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves, out_dir) {
+#' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves)
+MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, modes, areas, waves) {
   catch_prelim <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   compute_subset <- catch_prelim[, c("TOT_CAT", "LANDING", "ESTREL")]
   groupvar <- list(COMMON = catch_prelim$COMMON, WAVE = catch_prelim$WAVE)
@@ -141,9 +140,8 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species, mod
 
   compute_subset <- base_effort[, c("WAVE", "MODE_FX_F", "AREA_X_F", "ESTRIPS")]
   trips <- outlie("ESTRIPS", compute_subset, effort_prelim, c("WAVE", "MODE_FX_F", "AREA_X_F"), out_dir)
-
   effort$YEAR <- as.factor(effort$YEAR)
-  return(list(combined_catch, outlierx))
+  return(list(combined_catch, outlierx, trips))
 }
 
 #' MRIP analysis
@@ -185,10 +183,12 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     state,
     in_dir
   )
-  combined_catch <- mrip_outlier(
+  combined_catch <- MRIPOutlier(
     mrip_data[[1]], mrip_data[[2]], start_yr, end_yr,
-    prelim_yr, species, modes, areas, waves, out_dir
+    prelim_yr, species, modes, areas, waves
   )
+  writeout(combined_catch[[2]], out_dir)
+  writeout(combined_catch[[3]], out_dir)
   makeplots(combined_catch[[1]], mrip_data[[2]], species, waves, out_dir)
 }
 
@@ -374,9 +374,25 @@ outlie <- function(vats, compute_subset, totcat_prelim, mergeby, out_dir) {
     comp <- merge(comp, baseline, by = mergeby, all.x = T)
     comp <- comp[!apply(comp, 1, function(x) any(is.na(x))), ]
     comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
-    totcat_outliers <- comp[which(comp$outlier), ]
-    write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
     comp$var <- x
     return(comp)
   })
+}
+
+#' Write outliers
+#'
+#' Creates output to help you identify outliers
+#' @param comp Outlier dataframe
+#' @param out_dir where your files should go
+#' @return Output files to explore the mrip data with the parameters entered
+#' @export
+#' @examples
+#' writeout(
+#'   comp = comp,
+#'   out_dir = "~/output/mrip_ex"
+#' )
+writeout <- function(comp, out_dir) {
+  x <- comp$var[1]
+  totcat_outliers <- comp[which(comp$outlier), ]
+  write.csv(totcat_outliers, file.path(out_dir, paste(x, "outliers.csv", sep = "-")))
 }
