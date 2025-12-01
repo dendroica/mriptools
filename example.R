@@ -22,8 +22,7 @@ species <- c(
 )
 out_dir <- "~/output/mrip/mrip_ex"
 mrip(
-  start_yr = 2017,
-  end_yr = 2024,
+  comparison_timespan = 2017:2024,
   prelim_yr = 2025,
   species,
   waves = c(2, 3, 4, 5, 6),
