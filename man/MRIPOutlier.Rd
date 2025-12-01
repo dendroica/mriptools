@@ -4,7 +4,14 @@
 \alias{MRIPOutlier}
 \title{MRIP outlier}
 \usage{
-MRIPOutlier(catch, effort, comparison_timespan, prelim_yr, species)
+MRIPOutlier(
+  catch,
+  effort,
+  comparison_timespan,
+  prelim_yr,
+  species,
+  aggregate_factors = c("COMMON", "WAVE")
+)
 }
 \arguments{
 \item{catch}{Compiled MRIP catch data}
@@ -16,6 +23,8 @@ MRIPOutlier(catch, effort, comparison_timespan, prelim_yr, species)
 \item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
 \item{species}{A vector of the species to include}
+
+\item{aggregate_factors}{(optional) Vector of variables to aggregate over}
 }
 \value{
 Outlier flagging

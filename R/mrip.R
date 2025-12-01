@@ -75,15 +75,16 @@ MRIPData <- function(
 #' @param comparison_timespan Years to include to calculate the baseline
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
+#' @param aggregate_factors (optional) Vector of variables to aggregate over
 #' @return Outlier flagging
 #' @export
 #' @examples
 #' MRIPOutlier(catch, effort, comparison_timepsan, prelim_yr, species)
-MRIPOutlier <- function(catch, effort, comparison_timespan, prelim_yr, species) {
+MRIPOutlier <- function(catch, effort, comparison_timespan, prelim_yr, species,
+                        aggregate_factors=c("COMMON", "WAVE")) {
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ] # years for base_catch/ave
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
-  aggregate_factors <- c("COMMON", "WAVE")
   prelim_aggregates <- lapply(aggregate_factors, function(x) {
     prelim_catch[,which(names(prelim_catch)==x)]
   })
