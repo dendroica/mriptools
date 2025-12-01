@@ -9,16 +9,7 @@ library(mriptools)
 # You might want to watch how many species are included as it may take a little bit for the graphing function to loop through a ton of species
 
 species <- c(
-  "ATLANTIC CROAKER",
-  "BLACK DRUM",
-  "BLACK SEA BASS",
-  "BLUEFISH",
-  "COBIA",
-  "DOLPHIN",
-  "RED DRUM",
-  "STRIPED BASS",
-  "SUMMER FLOUNDER",
-  "TAUTOG"
+  "BLACK SEA BASS"
 )
 out_dir <- "~/output/mrip/mrip_ex"
 mrip(

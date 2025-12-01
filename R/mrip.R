@@ -291,7 +291,7 @@ ReadMRIP <- function(
     unlink(temp)
     unlink(temp2)
   } else {
-    mrip_data <- readmrip(path, state, waves, areas, modes)
+    mrip_data <- readmripdata(path, state, waves, areas, modes)
     print(mrip_data[1:5, 1:12])
   }
   # print(mrip_data[1:5,1:10])
