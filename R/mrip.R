@@ -1,8 +1,7 @@
 #' MRIP data
 #'
 #' Creates output to help you identify outliers
-#' @param start_yr Start year
-#' @param end_yr End year
+#' @param comparison_timespan Years to include to calculate the baseline
 #' @param prelim_yr The latest year in the MRIP data (preliminary)
 #' @param waves The MRIP waves to include
 #' @param areas Strata in distance from shore
@@ -13,8 +12,7 @@
 #' @export
 #' @examples
 #' MRIPData(
-#'   start_yr = 2017,
-#'   end_yr = 2024,
+#'   comparison_timespan = 2017:2024,
 #'   prelim_yr = 2025,
 #'   waves = c(2, 3, 4, 5, 6),
 #'   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
@@ -22,15 +20,14 @@
 #'   state = 24
 #' )
 MRIPData <- function(
-    start_yr,
-    end_yr,
+    comparison_timespan,
     prelim_yr = NA,
     waves,
     areas,
     modes,
     state,
     in_dir = NULL) {
-  time_pd <- c(start_yr:end_yr, prelim_yr)
+  time_pd <- c(comparison_timespan, prelim_yr)
   if (is.null(in_dir)) {
     in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
     website <- readLines(paste0(in_dir, "/"))
@@ -75,16 +72,15 @@ MRIPData <- function(
 #' Creates output to help you identify outliers
 #' @param catch Compiled MRIP catch data
 #' @param effort Compiled MRIP effort data
-#' @param start_yr Start year
-#' @param end_yr End year
+#' @param comparison_timespan Years to include to calculate the baseline
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @return Outlier flagging
 #' @export
 #' @examples
-#' MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
-MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
-  base_catch <- catch[catch$YEAR %in% start_yr:end_yr, ] # years for base_catch/ave
+#' MRIPOutlier(catch, effort, comparison_timepsan, prelim_yr, species)
+MRIPOutlier <- function(catch, effort, comparison_timespan, prelim_yr, species) {
+  base_catch <- catch[catch$YEAR %in% comparison_timespan, ] # years for base_catch/ave
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
   prelim_catch <- aggregate(prelim_catch[, vars_of_interest],
@@ -104,7 +100,7 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
   catch_outlier <- outlie(base_catch, prelim_catch, vars_of_interest, aggregate_factors)
   
   prelim_effort <- effort[effort$YEAR == prelim_yr, ]
-  base_effort <- effort[effort$YEAR %in% start_yr:end_yr, ]
+  base_effort <- effort[effort$YEAR %in% comparison_timespan, ]
   effort_outlier <- outlie(base_effort, prelim_effort, "ESTRIPS", c("WAVE", "MODE_FX_F", "AREA_X_F"))
   outliers <- c(catch_outlier, effort_outlier)
   return(outliers)
@@ -113,8 +109,7 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
 #' MRIP analysis
 #'
 #' Creates output to help you identify outliers
-#' @param start_yr Start year
-#' @param end_yr End year
+#' @param comparison_timespan Years to include to calculate the baseline
 #' @param prelim_yr The latest year in the mrip data (preliminary)
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
@@ -127,8 +122,7 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
 #' @export
 #' @examples
 #' mrip(
-#'   start_yr = 2017,
-#'   end_yr = 2024,
+#'   comparison_timespan = 2017:2024,
 #'   prelim_yr = 2025,
 #'   species = c("BLACK SEA BASS", "TAUTOG"),
 #'   waves = c(2, 3, 4, 5, 6),
@@ -137,10 +131,9 @@ MRIPOutlier <- function(catch, effort, start_yr, end_yr, prelim_yr, species) {
 #'   state = 24,
 #'   out_dir = "~/output/mrip_ex"
 #' )
-mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, state, in_dir = NULL, out_dir) {
+mrip <- function(comparison_timespan, prelim_yr, species, waves, areas, modes, state, in_dir = NULL, out_dir) {
   mrip_data <- MRIPData(
-    start_yr,
-    end_yr,
+    comparison_timespan,
     prelim_yr,
     waves,
     areas,
@@ -149,7 +142,7 @@ mrip <- function(start_yr, end_yr, prelim_yr, species, waves, areas, modes, stat
     in_dir
   )
   combined_catch <- MRIPOutlier(
-    mrip_data[[1]], mrip_data[[2]], start_yr, end_yr, prelim_yr, species
+    mrip_data[[1]], mrip_data[[2]], comparison_timespan, prelim_yr, species
   )
   writeout(combined_catch, out_dir)
   makeplots(mrip_data[[1]], mrip_data[[2]], species, waves, out_dir)

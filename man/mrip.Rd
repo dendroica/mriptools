@@ -5,8 +5,7 @@
 \title{MRIP analysis}
 \usage{
 mrip(
-  start_yr,
-  end_yr,
+  comparison_timespan,
   prelim_yr,
   species,
   waves,
@@ -18,9 +17,7 @@ mrip(
 )
 }
 \arguments{
-\item{start_yr}{Start year}
-
-\item{end_yr}{End year}
+\item{comparison_timespan}{Years to include to calculate the baseline}
 
 \item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
@@ -46,8 +43,7 @@ Creates output to help you identify outliers
 }
 \examples{
 mrip(
-  start_yr = 2017,
-  end_yr = 2024,
+  comparison_timespan = 2017:2024,
   prelim_yr = 2025,
   species = c("BLACK SEA BASS", "TAUTOG"),
   waves = c(2, 3, 4, 5, 6),

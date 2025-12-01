@@ -4,16 +4,14 @@
 \alias{MRIPOutlier}
 \title{MRIP outlier}
 \usage{
-MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
+MRIPOutlier(catch, effort, comparison_timespan, prelim_yr, species)
 }
 \arguments{
 \item{catch}{Compiled MRIP catch data}
 
 \item{effort}{Compiled MRIP effort data}
 
-\item{start_yr}{Start year}
-
-\item{end_yr}{End year}
+\item{comparison_timespan}{Years to include to calculate the baseline}
 
 \item{prelim_yr}{The latest year in the mrip data (preliminary)}
 
@@ -26,5 +24,5 @@ Outlier flagging
 Creates output to help you identify outliers
 }
 \examples{
-MRIPOutlier(catch, effort, start_yr, end_yr, prelim_yr, species)
+MRIPOutlier(catch, effort, comparison_timepsan, prelim_yr, species)
 }

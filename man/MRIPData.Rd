@@ -5,8 +5,7 @@
 \title{MRIP data}
 \usage{
 MRIPData(
-  start_yr,
-  end_yr,
+  comparison_timespan,
   prelim_yr = NA,
   waves,
   areas,
@@ -16,9 +15,7 @@ MRIPData(
 )
 }
 \arguments{
-\item{start_yr}{Start year}
-
-\item{end_yr}{End year}
+\item{comparison_timespan}{Years to include to calculate the baseline}
 
 \item{prelim_yr}{The latest year in the MRIP data (preliminary)}
 
@@ -40,8 +37,7 @@ Creates output to help you identify outliers
 }
 \examples{
 MRIPData(
-  start_yr = 2017,
-  end_yr = 2024,
+  comparison_timespan = 2017:2024,
   prelim_yr = 2025,
   waves = c(2, 3, 4, 5, 6),
   areas = c("INLAND", "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"),
