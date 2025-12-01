@@ -83,20 +83,25 @@ MRIPOutlier <- function(catch, effort, comparison_timespan, prelim_yr, species) 
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ] # years for base_catch/ave
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
-  prelim_catch <- aggregate(prelim_catch[, vars_of_interest],
-                             list(COMMON = prelim_catch$COMMON, WAVE = prelim_catch$WAVE), sum)
+  aggregate_factors <- c("COMMON", "WAVE")
+  prelim_aggregates <- lapply(aggregate_factors, function(x) {
+    prelim_catch[,which(names(prelim_catch)==x)]
+  })
+  prelim_catch2 <- aggregate(prelim_catch[, vars_of_interest],
+                             prelim_aggregates, sum)
+  names(prelim_catch2)[1:length(aggregate_factors)] <- aggregate_factors
   
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
-  base_catch <- aggregate(
-    base_catch[, vars_of_interest],
-    list(COMMON = base_catch$COMMON, YEAR = base_catch$YEAR, WAVE = base_catch$WAVE),
-    sum
-  )
+  base_aggregates <- lapply(c(aggregate_factors,"YEAR"), function(x) {
+    base_catch[,which(names(base_catch)==x)]
+  })
+  base_catch2 <- aggregate(base_catch[, vars_of_interest],
+                           base_aggregates, sum)
+  names(base_catch2)[1:length(aggregate_factors)] <- aggregate_factors
   # Join mrip_data with calculated harvest_stats (mean, sd, and n)
   
-  aggregate_factors <- c("COMMON", "WAVE")
-  base_catch <- base_catch[, c(aggregate_factors, vars_of_interest)]
+  base_catch <- base_catch2[, c(aggregate_factors, vars_of_interest)]
   catch_outlier <- outlie(base_catch, prelim_catch, vars_of_interest, aggregate_factors)
   
   prelim_effort <- effort[effort$YEAR == prelim_yr, ]

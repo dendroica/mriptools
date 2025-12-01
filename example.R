@@ -11,7 +11,7 @@ library(mriptools)
 species <- c(
   "BLACK SEA BASS"
 )
-out_dir <- "~/output/mrip/mrip_ex"
+out_dir <- "~/output/mrip/mrip_ex2"
 mrip(
   comparison_timespan = 2017:2024,
   prelim_yr = 2025,
