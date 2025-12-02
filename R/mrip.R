@@ -103,7 +103,7 @@ MRIPOutlier <- function(catch, effort, comparison_timespan, prelim_yr, species,
   # Join mrip_data with calculated harvest_stats (mean, sd, and n)
   
   base_catch <- base_catch2[, c(aggregate_factors, vars_of_interest)]
-  catch_outlier <- outlie(base_catch, prelim_catch, vars_of_interest, aggregate_factors)
+  catch_outlier <- outlie(base_catch, prelim_catch2, vars_of_interest, aggregate_factors)
   
   prelim_effort <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% comparison_timespan, ]
