@@ -38,11 +38,11 @@ MRIPData <- function(
   if (is.null(in_dir)) {
     in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
     filenames <- ListFromWeb(in_dir, time_pd, vars)
-    mrip_data <- ReadInMRIPFromWeb(filenames, vars)
+    mrip_data <- LoadMRIPFromWeb(filenames, vars)
   } else {
     filenames <- list.files(in_dir)
     filenames <- MatchYrs(filenames, time_pd)
-    mrip_data <- ReadInMRIPLocal(filenames, vars)
+    mrip_data <- LoadMRIPLocal(filenames, vars)
   }
   # function(x, y, src, state, species, waves, areas, modes)
   # print("download complete")
@@ -183,37 +183,37 @@ ListFromWeb <- function(in_dir, time_pd, vars) {
   filenames <- MatchYrs(filenames, time_pd)
 }
 
-ReadInMRIPFromWeb <- function(filenames, vars) {
+LoadMRIPFromWeb <- function(filenames, vars) {
   Map(function(
-      x,
-      y,
-      in_dir,
-      state,
-      waves,
-      areas,
-      modes) {
-    print(x) # x <- names(filenames)
-    print(y) # y <- filenames
-
-    path <- file.path(in_dir, x)
-
-    if (tools::file_ext(x) == "zip") {
-      temp <- tempfile()
-      temp2 <- tempfile()
-      download.file(path, temp)
-      unzip(zipfile = temp, exdir = temp2)
-      match_files <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
-      files_that_match <- list.files(temp2)[match_files]
-      mrip_data <- do.call(rbind, lapply(files_that_match, function(z) {
-        file_path <- file.path(temp2, z)
-        mrip_data <- readmripdata(file_path, state, waves, areas, modes)
+    filename,
+    yr,
+    in_dir,
+    state,
+    waves,
+    areas,
+    modes) {
+    #print(filename) # filename <- names(filenames)
+    #print(yr) # yr <- filenames
+    path <- file.path(in_dir, filename)
+    if (tools::file_ext(filename) == "zip") {
+      tmp <- tempfile()
+      tmp2 <- tempfile()
+      download.file(path, tmp)
+      unzip(zipfile = tmp, exdir = tmp2)
+      file_match <- sapply(unlist(unname(yr)), \(b) grep(b, list.files(tmp2)))
+      files_that_match <- list.files(tmp2)[sapply(unlist(unname(yr)),
+                                                   \(b) grep(b,
+                                                             list.files(tmp2)))]
+      mrip_data <- do.call(rbind, lapply(files_that_match, function(file) {
+        file_path <- file.path(tmp2, file)
+        mrip_data <- ReadMRIP(file_path, state, waves, areas, modes)
         print(mrip_data[1:5, 1:12])
         return(mrip_data)
       }))
-      unlink(temp)
-      unlink(temp2)
+      unlink(tmp)
+      unlink(tmp2)
     } else {
-      mrip_data <- readmripdata(path, state, waves, areas, modes)
+      mrip_data <- ReadMRIP(path, state, waves, areas, modes)
       print(mrip_data[1:5, 1:12])
     }
     # print(mrip_data[1:5,1:10])
@@ -221,33 +221,33 @@ ReadInMRIPFromWeb <- function(filenames, vars) {
   }, names(filenames), filenames, MoreArgs = vars)
 }
 
-ReadInMRIPLocal <- function(filenames, vars) {
+LoadMRIPLocal <- function(filenames, vars) {
   Map(function(
-      x,
-      y,
+      filename,
+      yr,
       in_dir,
       state,
       waves,
       areas,
       modes) {
-    print(x) # x <- names(filenames)
-    print(y) # y <- filenames
+    #print(x) # x <- names(filenames)
+    #print(y) # y <- filenames
 
-    path <- file.path(in_dir, x)
-    if (tools::file_ext(x) == "zip") {
-      temp2 <- tempfile()
-      unzip(zipfile = path, exdir = temp2)
-      match_files <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
-      files_that_match <- list.files(temp2)[match_files]
-      mrip_data <- do.call(rbind, lapply(files_that_match, function(z) {
-        file_path <- file.path(temp2, z)
-        mrip_data <- readmripdata(file_path, state, waves, areas, modes)
+    path <- file.path(in_dir, filename)
+    if (tools::file_ext(filename) == "zip") {
+      tmp2 <- tempfile()
+      unzip(zipfile = path, exdir = tmp2)
+      file_matches <- sapply(unlist(unname(yr)), \(b) grep(b, list.files(tmp2)))
+      files_that_match <- list.files(tmp2)[file_matches]
+      mrip_data <- do.call(rbind, lapply(files_that_match, function(file) {
+        file_path <- file.path(tmp2, file)
+        mrip_data <- ReadMRIP(file_path, state, waves, areas, modes)
         print(mrip_data[1:5, 1:12])
         return(mrip_data)
       }))
-      unlink(temp2)
+      unlink(tmp2)
     } else {
-      mrip_data <- readmripdata(path, state, waves, areas, modes)
+      mrip_data <- ReadMRIP(path, state, waves, areas, modes)
       print(mrip_data[1:5, 1:12])
     }
     # print(mrip_data[1:5,1:10])
@@ -255,7 +255,8 @@ ReadInMRIPLocal <- function(filenames, vars) {
   }, names(filenames), filenames, MoreArgs = vars)
 }
 
-ReadInMRIP <- function(filenames, vars) {
+#this function elegantly handles sources from either local or online sources
+LoadMRIPFiles <- function(filenames, vars) {
   Map(function(
       x,
       y,
@@ -270,26 +271,26 @@ ReadInMRIP <- function(filenames, vars) {
     path <- file.path(in_dir, x)
 
     if (tools::file_ext(x) == "zip") {
-      temp <- tempfile()
-      temp2 <- tempfile()
+      tmp <- tmpfile()
+      tmp2 <- tmpfile()
       if (grepl("^https", in_dir)) {
-        download.file(path, temp)
-        unzip(zipfile = temp, exdir = temp2)
+        download.file(path, tmp)
+        unzip(zipfile = tmp, exdir = tmp2)
       } else {
-        unzip(zipfile = path, exdir = temp2)
+        unzip(zipfile = path, exdir = tmp2)
       }
-      match_files <- sapply(unlist(unname(y)), \(b) grep(b, list.files(temp2)))
-      files_that_match <- list.files(temp2)[match_files]
+      file_matches <- sapply(unlist(unname(y)), \(b) grep(b, list.files(tmp2)))
+      files_that_match <- list.files(tmp2)[file_matches]
       mrip_data <- do.call(rbind, lapply(files_that_match, function(z) {
-        file_path <- file.path(temp2, z)
-        mrip_data <- readmripdata(file_path, state, waves, areas, modes)
+        file_path <- file.path(tmp2, z)
+        mrip_data <- ReadMRIP(file_path, state, waves, areas, modes)
         print(mrip_data[1:5, 1:12])
         return(mrip_data)
       }))
-      unlink(temp)
-      unlink(temp2)
+      unlink(tmp)
+      unlink(tmp2)
     } else {
-      mrip_data <- readmripdata(path, state, waves, areas, modes)
+      mrip_data <- ReadMRIP(path, state, waves, areas, modes)
       print(mrip_data[1:5, 1:12])
     }
     # print(mrip_data[1:5,1:10])
@@ -303,7 +304,7 @@ ReadInMRIP <- function(filenames, vars) {
 #' need same number of columns for this to work
 #'
 #' @noRd
-readcatch <- function(filen, state, waves) {
+ReadCatch <- function(filen, state, waves) {
   readin <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
   # na = "",
@@ -355,7 +356,7 @@ readcatch <- function(filen, state, waves) {
 #' Effort mrip_data
 #'
 #' @noRd
-readeffort <- function(filen, state, waves, areas, modes) {
+ReadEffort <- function(filen, state, waves, areas, modes) {
   readin <- read.csv(filen)
   num <- apply(readin, 2, \(x) any(grepl("[[:digit:]]", x)))
   numvars <- c(names(which(num)))
@@ -373,15 +374,15 @@ readeffort <- function(filen, state, waves, areas, modes) {
   return(readin)
 }
 
-readmripdata <- function(filen, state, waves, areas, modes) {
+ReadMRIP <- function(filen, state, waves, areas, modes) {
   if (length(grep("mrip_catch_bywave_", filen)) > 0) {
-    mrip_data <- readcatch(
+    mrip_data <- ReadCatch(
       filen,
       state = state,
       waves = waves
     )
   } else if (length(grep("mrip_effort_bywave_", filen)) > 0) {
-    mrip_data <- readeffort(
+    mrip_data <- ReadEffort(
       filen,
       state = state,
       waves = waves,
@@ -391,9 +392,9 @@ readmripdata <- function(filen, state, waves, areas, modes) {
   }
 }
 
-tau <- function(n, sum_catch, mean_catch, sd_catch) {
+Tau <- function(n, sum_catch, mean_catch, sd_catch) {
   if (n > 2) {
-    t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
+    t_critical <- qt(1 - 0.05 / (2 * n), aggregated = n - 2)
     tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
     outlier <- abs(sum_catch - mean_catch) / sd_catch > tau
   } else {
@@ -402,29 +403,24 @@ tau <- function(n, sum_catch, mean_catch, sd_catch) {
   return(outlier)
 }
 
-agg <- function(vars_of_interest, ids, base_catch) {
-  agged <- aggregate(base_catch[, vars_of_interest],
-    by = lapply(ids, \(x) base_catch[, x]),
-    FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
-  )
-  names(agged)[1:length(ids)] <- ids
-  namefill <- (length(ids) + 1):(length(ids) + length(vars_of_interest))
-  names(agged)[namefill] <- vars_of_interest
-  return(agged)
-}
-
 Outlie <- function(base_catch, totcat_prelim, vars_of_interest, mergeby) {
-  df <- agg(vars_of_interest, mergeby, base_catch)
+  aggregated <- aggregate(base_catch[, vars_of_interest],
+                     by = lapply(mergeby, \(x) base_catch[, x]),
+                     FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
+  )
+  names(aggregated)[1:length(mergeby)] <- mergeby
+  namefill <- (length(mergeby) + 1):(length(mergeby) + length(vars_of_interest))
+  names(aggregated)[namefill] <- vars_of_interest
   lapply(vars_of_interest, function(x) {
-    sumstats <- df[, x]
-    base_catch <- cbind(df[, mergeby], sumstats)
+    sumstats <- aggregated[, x]
+    base_catch <- cbind(aggregated[, mergeby], sumstats)
     base_catch <- base_catch[!is.na(base_catch$n), ]
 
     comp <- totcat_prelim[, mergeby]
     comp$val <- totcat_prelim[, x]
     comp <- merge(comp, base_catch, by = mergeby, all.x = T)
     comp <- comp[!apply(comp, 1, function(x) any(is.na(x))), ]
-    comp$outlier <- mapply(tau, comp$n, comp$val, comp$mn, comp$sd)
+    comp$outlier <- mapply(Tau, comp$n, comp$val, comp$mn, comp$sd)
     comp$var <- x
     return(comp)
   })
