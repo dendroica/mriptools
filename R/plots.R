@@ -10,7 +10,7 @@
 #' @return Output files to explore the data with the parameters entered
 #' @import ggplot2
 #' @export
-makeplots <- function(catch, effort, species, waves,
+Plot <- function(catch, effort, species, waves,
                       vars = c("ESTREL", "LANDING", "TOT_CAT"), outdir) {
   time_pd <- unique(catch$YEAR)
   modes <- unique(effort$MODE_FX_F)
