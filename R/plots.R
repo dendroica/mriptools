@@ -5,19 +5,21 @@
 #' @param effort this is the data frame of all of the effort data within the time period of interest
 #' @param species A vector of the species to include
 #' @param waves The MRIP waves to include
+#' @param vars (optional) The MRIP variables to include
 #' @param outdir where your files should go
 #' @return Output files to explore the data with the parameters entered
 #' @import ggplot2
 #' @export
-makeplots <- function(catch, effort, species, waves, outdir) {
+makeplots <- function(catch, effort, species, waves,
+                      vars = c("ESTREL", "LANDING", "TOT_CAT"), outdir) {
   time_pd <- unique(catch$YEAR)
   modes <- unique(effort$MODE_FX_F)
   areas <- unique(effort$AREA_X_F)
   ##### TOTAL CATCH COMPARISONS######
-  
+
   # prelim calculations###########
   # totcat_notCommon <- totcat[is.na(totcat$n), ]
-  
+
   all_combinations <- expand.grid(
     COMMON = species,
     YEAR = time_pd,
@@ -25,7 +27,7 @@ makeplots <- function(catch, effort, species, waves, outdir) {
     MODE_FX_F = modes,
     AREA_X_F = areas
   )
-  
+
   # Merge with the original mrip_data frame
   combined_catch <- merge(all_combinations, catch, all.x = TRUE)
   # Optionally, replace NA values with 0...
@@ -35,11 +37,11 @@ makeplots <- function(catch, effort, species, waves, outdir) {
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
   combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F)
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
-  #combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
+  # combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
   ################## EFFORT
   # Wanted to graph the outputs to see how catch levels & PSEs compare across years by wave, mode, and area
   # Graphed according to the species list, waves, areas, and modes you set in the beginning section of code
-  
+
   # set up total catch plot function
   totcatplot <- function(wavenum, species) {
     df <- combined_catch[combined_catch$COMMON == species & combined_catch$WAVE == wavenum, ]
@@ -53,17 +55,19 @@ makeplots <- function(catch, effort, species, waves, outdir) {
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
-  
-  # Loops through each species and produces a graph for each wave
-  for (s in species) {
-    dir.create(file.path(outdir, s), showWarnings=F)
-    pdf(file.path(outdir, s, "Total Catch.pdf"))
-    for (w in waves) {
-      totcatplot(w, s)
+
+  if ("TOT_CAT" %in% vars) {
+    # Loops through each species and produces a graph for each wave
+    for (s in species) {
+      dir.create(file.path(outdir, s), showWarnings = F)
+      pdf(file.path(outdir, s, "Total Catch.pdf"))
+      for (w in waves) {
+        totcatplot(w, s)
+      }
+      dev.off()
     }
-    dev.off()
   }
-  
+
   # Graphing of landings
   # set up landings plot function
   landingplot <- function(wavenum, species) {
@@ -78,51 +82,55 @@ makeplots <- function(catch, effort, species, waves, outdir) {
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
-  
-  # Loops through each species and produces a graph for each wave
-  for (s in species) {
-    dir.create(file.path(outdir, s), showWarnings=F)
-    pdf(file.path(outdir, s, "Landings.pdf"))
-    for (w in waves) {
-      landingplot(w, s)
+
+  if ("LANDING" %in% vars) {
+    # Loops through each species and produces a graph for each wave
+    for (s in species) {
+      dir.create(file.path(outdir, s), showWarnings = F)
+      pdf(file.path(outdir, s, "Landings.pdf"))
+      for (w in waves) {
+        landingplot(w, s)
+      }
+      dev.off()
     }
-    dev.off()
   } # closes the PDF device
-  
+
   # Graphing of releases
   # set up release plot function
   relplot <- function(wavenum, s) {
     df <- combined_catch[combined_catch$COMMON == s & combined_catch$WAVE == wavenum, ]
-    #df$YEAR <- as.integer(df$YEAR)
+    # df$YEAR <- as.integer(df$YEAR)
     if (nrow(df) > 0) {
-    p <-
-      ggplot(df, aes(x = YEAR, y = ESTREL)) +
-      geom_point() +
-      geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
-      labs(title = paste0(s, " WAVE ", wavenum, " Live Releases (B2)"), y = "Live Releases (numbers)") +
-      facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
-      theme_bw() +
-      scale_x_discrete(guide = guide_axis(n.dodge = 2))
-    print(p)
-  }
-  }
-  
-  # Loops through each species and produces a graph for each wave
-  for (s in species) {
-    print(s)
-    dir.create(file.path(outdir, s), showWarnings=F)
-    pdf(file.path(outdir, s, "Releases.pdf"))
-    for (w in waves) {
-      print(w)
-      relplot(w, s)
+      p <-
+        ggplot(df, aes(x = YEAR, y = ESTREL)) +
+        geom_point() +
+        geom_errorbar(aes(ymin = LOWER_ESTREL, ymax = UPPER_ESTREL)) +
+        labs(title = paste0(s, " WAVE ", wavenum, " Live Releases (B2)"), y = "Live Releases (numbers)") +
+        facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
+        theme_bw() +
+        scale_x_discrete(guide = guide_axis(n.dodge = 2))
+      print(p)
     }
-    dev.off()
+  }
+
+  if ("ESTREL" %in% vars) {
+    # Loops through each species and produces a graph for each wave
+    for (s in species) {
+      print(s)
+      dir.create(file.path(outdir, s), showWarnings = F)
+      pdf(file.path(outdir, s, "Releases.pdf"))
+      for (w in waves) {
+        print(w)
+        relplot(w, s)
+      }
+      dev.off()
+    }
   }
   # closes the PDF device
-  #effort$YEAR <- as.factor(effort$YEAR)
+  # effort$YEAR <- as.factor(effort$YEAR)
   effplot <- function(wavenum) {
     df <- effort[effort$WAVE == wavenum, ]
-    #df$YEAR <- as.integer(df$YEAR)
+    # df$YEAR <- as.integer(df$YEAR)
     p <-
       ggplot(df, aes(x = YEAR, y = ESTRIPS)) +
       geom_point() +
@@ -133,7 +141,7 @@ makeplots <- function(catch, effort, species, waves, outdir) {
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
-  
+
   # Loops through each species and produces a graph for each wave
   pdf(file.path(outdir, "EstTrips.pdf"))
   for (w in waves) {

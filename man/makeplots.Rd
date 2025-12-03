@@ -4,7 +4,14 @@
 \alias{makeplots}
 \title{MRIP data visualization}
 \usage{
-makeplots(catch, effort, species, waves, outdir)
+makeplots(
+  catch,
+  effort,
+  species,
+  waves,
+  vars = c("ESTREL", "LANDING", "TOT_CAT"),
+  outdir
+)
 }
 \arguments{
 \item{catch}{this is the data frame of all of the catch data within the time period of interest}
@@ -14,6 +21,8 @@ makeplots(catch, effort, species, waves, outdir)
 \item{species}{A vector of the species to include}
 
 \item{waves}{The MRIP waves to include}
+
+\item{vars}{(optional) The MRIP variables to include}
 
 \item{outdir}{where your files should go}
 }
