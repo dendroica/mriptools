@@ -78,8 +78,8 @@ MRIPData <- function(
 #' @return Outlier flagging
 #' @export
 #' @examples
-#' MRIPOutlierAnalysis(catch, effort, comparison_timepsan, prelim_yr, species)
-MRIPOutlierAnalysis <- function(catch, effort, comparison_timespan, prelim_yr, species,
+#' OutlieMRIP(catch, effort, comparison_timepsan, prelim_yr, species)
+OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
                         aggregate_factors=c("COMMON", "WAVE")) {
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ] # years for base_catch/ave
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
@@ -146,7 +146,7 @@ mrip <- function(comparison_timespan, prelim_yr, species, waves, areas, modes, s
     state,
     in_dir
   )
-  outliers <- MRIPOutlierAnalysis(
+  outliers <- OutlieMRIP(
     mrip_data[[1]], mrip_data[[2]], comparison_timespan, prelim_yr, species
   )
   Write(outliers, out_dir)
