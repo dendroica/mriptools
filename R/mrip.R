@@ -56,7 +56,7 @@ MRIPData <- function(
   print("mrip data sorted")
   catch <- do.call(rbind, mrip_data[[1]])
   print("catch data compiled")
-  catch <- catch[!duplicated(catch), ] #does this effectively remove duplicates?
+  catch <- catch[!duplicated(catch), ] # does this effectively remove duplicates?
   print("catch data cleaned")
 
   effort <- do.call(rbind, mrip_data[[2]])
@@ -80,33 +80,43 @@ MRIPData <- function(
 #' @examples
 #' OutlieMRIP(catch, effort, comparison_timepsan, prelim_yr, species)
 OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
-                        aggregate_factors=c("COMMON", "WAVE")) {
-  base_catch <- catch[catch$YEAR %in% comparison_timespan, ] # years for base_catch/ave
+                       aggregate_factors = c("COMMON", "WAVE")) {
+  base_catch <- catch[catch$YEAR %in% comparison_timespan, ]
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
   prelim_aggregates <- lapply(aggregate_factors, function(x) {
-    prelim_catch[,which(names(prelim_catch)==x)]
+    prelim_catch[, which(names(prelim_catch) == x)]
   })
-  prelim_catch <- aggregate(prelim_catch[, vars_of_interest],
-                             prelim_aggregates, sum)
+  prelim_catch <- aggregate(
+    prelim_catch[, vars_of_interest],
+    prelim_aggregates, sum
+  )
   names(prelim_catch2)[1:length(aggregate_factors)] <- aggregate_factors
-  
+
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
-  base_aggregates <- lapply(c(aggregate_factors,"YEAR"), function(x) {
-    base_catch[,which(names(base_catch)==x)]
+  base_aggregates <- lapply(c(aggregate_factors, "YEAR"), function(x) {
+    base_catch[, which(names(base_catch) == x)]
   })
-  base_catch <- aggregate(base_catch[, vars_of_interest],
-                           base_aggregates, sum)
+  base_catch <- aggregate(
+    base_catch[, vars_of_interest],
+    base_aggregates, sum
+  )
   names(base_catch)[1:length(aggregate_factors)] <- aggregate_factors
   # Join mrip_data with calculated harvest_stats (mean, sd, and n)
-  
+
   base_catch <- base_catch[, c(aggregate_factors, vars_of_interest)]
-  catch_outlier <- Outlie(base_catch, prelim_catch, vars_of_interest, aggregate_factors)
-  
+  catch_outlier <- Outlie(
+    base_catch, prelim_catch, vars_of_interest,
+    aggregate_factors
+  )
+
   prelim_effort <- effort[effort$YEAR == prelim_yr, ]
   base_effort <- effort[effort$YEAR %in% comparison_timespan, ]
-  effort_outlier <- Outlie(base_effort, prelim_effort, "ESTRIPS", c("WAVE", "MODE_FX_F", "AREA_X_F"))
+  effort_outlier <- Outlie(
+    base_effort, prelim_effort, "ESTRIPS",
+    c("WAVE", "MODE_FX_F", "AREA_X_F")
+  )
   outliers <- c(catch_outlier, effort_outlier)
   return(outliers)
 }
@@ -136,7 +146,8 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
 #'   state = 24,
 #'   out_dir = "~/output/mrip_ex"
 #' )
-mrip <- function(comparison_timespan, prelim_yr, species, waves, areas, modes, state, in_dir = NULL, out_dir) {
+mrip <- function(comparison_timespan, prelim_yr, species, waves, areas, modes,
+                 state, in_dir = NULL, out_dir) {
   mrip_data <- MRIPData(
     comparison_timespan,
     prelim_yr,
@@ -174,18 +185,18 @@ ListFromWeb <- function(in_dir, time_pd, vars) {
 
 ReadInMRIPFromWeb <- function(filenames, vars) {
   Map(function(
-    x,
-    y,
-    in_dir,
-    state,
-    waves,
-    areas,
-    modes) {
+      x,
+      y,
+      in_dir,
+      state,
+      waves,
+      areas,
+      modes) {
     print(x) # x <- names(filenames)
     print(y) # y <- filenames
-    
+
     path <- file.path(in_dir, x)
-    
+
     if (tools::file_ext(x) == "zip") {
       temp <- tempfile()
       temp2 <- tempfile()
@@ -212,16 +223,16 @@ ReadInMRIPFromWeb <- function(filenames, vars) {
 
 ReadInMRIPLocal <- function(filenames, vars) {
   Map(function(
-    x,
-    y,
-    in_dir,
-    state,
-    waves,
-    areas,
-    modes) {
+      x,
+      y,
+      in_dir,
+      state,
+      waves,
+      areas,
+      modes) {
     print(x) # x <- names(filenames)
     print(y) # y <- filenames
-    
+
     path <- file.path(in_dir, x)
     if (tools::file_ext(x) == "zip") {
       temp2 <- tempfile()
@@ -246,18 +257,18 @@ ReadInMRIPLocal <- function(filenames, vars) {
 
 ReadInMRIP <- function(filenames, vars) {
   Map(function(
-    x,
-    y,
-    in_dir,
-    state,
-    waves,
-    areas,
-    modes) {
+      x,
+      y,
+      in_dir,
+      state,
+      waves,
+      areas,
+      modes) {
     print(x) # x <- names(filenames)
     print(y) # y <- filenames
-    
+
     path <- file.path(in_dir, x)
-    
+
     if (tools::file_ext(x) == "zip") {
       temp <- tempfile()
       temp2 <- tempfile()
