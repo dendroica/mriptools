@@ -15,7 +15,7 @@ Run the following line in R: `devtools::install_github("dendroica/mriptools")`
 Run the following line in R: `devtools::update_packages("mriptools")`
 
 ## Instructions  
-Below is an example R script to run the `mrip()` function. Set the FIPS code for your state:  
+Below is an example R script to run the `mrip()` function. Set your baseline for comparison in `comparison_timespan`. Set the FIPS code for your state:  
 GA=13, SC=45, NC=37, VA=51, MD=24, DE=10, NJ=34, NY=36, CT=9, RI=44, MA=25, NH=33, ME=23  
 Set the `out_dir` variable to the folder where output plots and CSV files will be generated. The `in_dir` argument is optional, and points to a location with your downloaded files. If this option is not set, the default behavior is to pull the data directly from the data repository online: https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads
 
@@ -50,6 +50,10 @@ mrip(
   out_dir = my_outdir
 ) # in_dir="~/data/MRIP",
 ```
+## Output
+The variables are defined here: https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/  
+- val: the value for the prelim year
+- n: the number of years in `comparison_timespan` that the species was observed in the given wave, and thus reflects how many values went into calculating the summary stats
 
 
 
