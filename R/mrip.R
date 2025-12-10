@@ -80,7 +80,7 @@ CompileMRIPData <- function(
 #' @examples
 #' OutlieMRIP(catch, effort, comparison_timepsan, prelim_yr, species)
 OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
-                       aggregate_factors = c("COMMON", "WAVE")) {
+                       aggregate_factors = c("COMMON", "WAVE", "STATE")) {
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ]
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
@@ -112,7 +112,7 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
   base_effort <- effort[effort$YEAR %in% comparison_timespan, ]
   effort_outlier <- Outlie(
     base_effort, prelim_effort, "ESTRIPS",
-    c("WAVE", "MODE_FX_F", "AREA_X_F")
+    c("WAVE", "MODE_FX_F", "AREA_X_F", "STATE")
   )
   outliers <- c(catch_outlier, effort_outlier)
   return(outliers)
@@ -144,7 +144,7 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
 #'   out_dir = "~/output/mrip_ex"
 #' )
 AnalyzeMRIPOutliers <- function(comparison_timespan, prelim_yr, species, waves, areas, modes,
-                 state, in_dir = NULL, out_dir) {
+                                state, in_dir = NULL, out_dir) {
   mrip_data <- CompileMRIPData(
     comparison_timespan,
     prelim_yr,
@@ -297,14 +297,11 @@ LoadMRIPFiles <- function(filenames, vars) {
   }, names(filenames), filenames, MoreArgs = vars)
 }
 
-#' Catch mrip_data
-#'
-#' subsets to just your state's mrip_data
-#' need same number of columns for this to work
+#' Reading catch MRIP data
 #'
 #' @noRd
-ReadCatch <- function(filen, state, waves) {
-  readin <- read.csv(filen, colClasses = c("SP_CODE" = "character"))
+ReadCatch <- function(file, state, waves) {
+  mrip_data <- read.csv(file, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
   # na = "",
   # col_types = readr::cols(
@@ -340,23 +337,29 @@ ReadCatch <- function(filen, state, waves) {
   # ), lazy=T
   # )
 
-  numvars <- c(names(which(apply(readin, 2, \(x) any(grepl("[[:digit:]]", x))))))
-  numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
-  readin[, numvars] <- apply(
-    readin[, numvars],
+  num_vars <- c(names(which(apply(
+    mrip_data,
+    2,
+    \(x) any(grepl(
+      "[[:digit:]]",
+      x
+    ))
+  ))))[!num_vars %in% c("AREA_X_F", "SP_CODE")]
+  mrip_data[, num_vars] <- apply(
+    mrip_data[, num_vars],
     2,
     \(x) as.numeric(gsub(",", "", x))
   )
-  names(readin) <- toupper(names(readin))
-  readin <- subset(readin, ST == state & readin$WAVE %in% waves) # COMMON %in% species
-  return(readin)
+  names(mrip_data) <- toupper(names(mrip_data))
+  mrip_data <- subset(mrip_data, ST == state & WAVE %in% waves) # COMMON %in% species
+  return(mrip_data)
 }
 
 #' Effort mrip_data
 #'
 #' @noRd
-ReadEffort <- function(filen, state, waves, areas, modes) {
-  readin <- read.csv(filen)
+ReadEffort <- function(file, state, waves, areas, modes) {
+  readin <- read.csv(file)
   num <- apply(readin, 2, \(x) any(grepl("[[:digit:]]", x)))
   numvars <- c(names(which(num)))
   numvars <- numvars[!numvars %in% c("AREA_X_F", "SP_CODE")]
