@@ -39,7 +39,7 @@ myspecies <- c(
 
 my_outdir <- "~/output/mrip_ex"
 
-mrip(
+AnalyzeMRIPOutliers(
   comparison_timespan = 2017:2024,
   prelim_yr = 2025,
   species = myspecies,
@@ -53,6 +53,7 @@ mrip(
 ## Output  
 - val: the value for the prelim year
 - n: the number of years in `comparison_timespan` that the species was observed in the given wave, and thus reflects how many values went into calculating the summary stats
+
 
 
 
