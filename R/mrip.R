@@ -11,7 +11,7 @@
 #' @return List of catch and effort data
 #' @export
 #' @examples
-#' MRIPData(
+#' CompileMRIPData(
 #'   comparison_timespan = 2017:2024,
 #'   prelim_yr = 2025,
 #'   waves = c(2, 3, 4, 5, 6),
@@ -19,7 +19,7 @@
 #'   modes = c("CHARTER BOAT", "PARTY BOAT", "PRIVATE/RENTAL BOAT", "SHORE"),
 #'   state = 24
 #' )
-MRIPData <- function(
+CompileMRIPData <- function(
     comparison_timespan,
     prelim_yr = NA,
     waves,
@@ -133,7 +133,7 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
 #' @return Output files to explore the mrip data with the parameters entered
 #' @export
 #' @examples
-#' mrip(
+#' AnalyzeMRIPOutliers(
 #'   comparison_timespan = 2017:2024,
 #'   prelim_yr = 2025,
 #'   species = c("BLACK SEA BASS", "TAUTOG"),
@@ -143,9 +143,9 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
 #'   state = 24,
 #'   out_dir = "~/output/mrip_ex"
 #' )
-mrip <- function(comparison_timespan, prelim_yr, species, waves, areas, modes,
+AnalyzeMRIPOutliers <- function(comparison_timespan, prelim_yr, species, waves, areas, modes,
                  state, in_dir = NULL, out_dir) {
-  mrip_data <- MRIPData(
+  mrip_data <- CompileMRIPData(
     comparison_timespan,
     prelim_yr,
     waves,

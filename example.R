@@ -10,7 +10,7 @@ library(mriptools)
 
 species <- c("TAUTOG","BLACK SEA BASS")
 out_dir <- "~/output/mrip/mrip_ex"
-mrip(
+AnalyzeMRIPOutliers(
   comparison_timespan = 2017:2024,
   prelim_yr = 2025,
   species,
