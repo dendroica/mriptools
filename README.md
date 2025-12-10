@@ -1,5 +1,5 @@
 # R package: mriptools
-This is a draft library for MRIP data exploration, including outlier analysis. 
+This is a draft library for MRIP data exploration, including outlier analysis. The data and variables used are here: https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/
 
 ## Requirements  
 The following software/R libraries are required to install the package...  
@@ -50,10 +50,10 @@ mrip(
   out_dir = my_outdir
 ) # in_dir="~/data/MRIP",
 ```
-## Output
-The variables are defined here: https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/  
+## Output  
 - val: the value for the prelim year
 - n: the number of years in `comparison_timespan` that the species was observed in the given wave, and thus reflects how many values went into calculating the summary stats
+
 
 
 
