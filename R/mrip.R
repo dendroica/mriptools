@@ -84,23 +84,20 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ]
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
-  prelim_aggregates <- lapply(aggregate_factors, function(x) {
-    prelim_catch[, which(names(prelim_catch) == x)]
-  })
   prelim_catch <- aggregate(
     prelim_catch[, vars_of_interest],
-    prelim_aggregates, sum
+    by = lapply(
+      aggregate_factors,
+      \(x) prelim_catch[, x]
+    ), sum
   )
   names(prelim_catch2)[1:length(aggregate_factors)] <- aggregate_factors
 
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
-  base_aggregates <- lapply(c(aggregate_factors, "YEAR"), function(x) {
-    base_catch[, which(names(base_catch) == x)]
-  })
   base_catch <- aggregate(
     base_catch[, vars_of_interest],
-    base_aggregates, sum
+    by = lapply(c(aggregate_factors, "YEAR"), \(x) base_catch[, x]), sum
   )
   names(base_catch)[1:length(aggregate_factors)] <- aggregate_factors
   # Join mrip_data with calculated harvest_stats (mean, sd, and n)
@@ -185,15 +182,15 @@ ListFromWeb <- function(in_dir, time_pd, vars) {
 
 LoadMRIPFromWeb <- function(filenames, vars) {
   Map(function(
-    filename,
-    yr,
-    in_dir,
-    state,
-    waves,
-    areas,
-    modes) {
-    #print(filename) # filename <- names(filenames)
-    #print(yr) # yr <- filenames
+      filename,
+      yr,
+      in_dir,
+      state,
+      waves,
+      areas,
+      modes) {
+    # print(filename) # filename <- names(filenames)
+    # print(yr) # yr <- filenames
     path <- file.path(in_dir, filename)
     if (tools::file_ext(filename) == "zip") {
       tmp <- tempfile()
@@ -201,9 +198,13 @@ LoadMRIPFromWeb <- function(filenames, vars) {
       download.file(path, tmp)
       unzip(zipfile = tmp, exdir = tmp2)
       file_match <- sapply(unlist(unname(yr)), \(b) grep(b, list.files(tmp2)))
-      files_that_match <- list.files(tmp2)[sapply(unlist(unname(yr)),
-                                                   \(b) grep(b,
-                                                             list.files(tmp2)))]
+      files_that_match <- list.files(tmp2)[sapply(
+        unlist(unname(yr)),
+        \(b) grep(
+          b,
+          list.files(tmp2)
+        )
+      )]
       mrip_data <- do.call(rbind, lapply(files_that_match, function(file) {
         file_path <- file.path(tmp2, file)
         mrip_data <- ReadMRIP(file_path, state, waves, areas, modes)
@@ -222,16 +223,15 @@ LoadMRIPFromWeb <- function(filenames, vars) {
 }
 
 LoadMRIPLocal <- function(filenames, vars) {
-  Map(function(
-      filename,
-      yr,
-      in_dir,
-      state,
-      waves,
-      areas,
-      modes) {
-    #print(x) # x <- names(filenames)
-    #print(y) # y <- filenames
+  Map(function(filename,
+               yr,
+               in_dir,
+               state,
+               waves,
+               areas,
+               modes) {
+    # print(x) # x <- names(filenames)
+    # print(y) # y <- filenames
 
     path <- file.path(in_dir, filename)
     if (tools::file_ext(filename) == "zip") {
@@ -255,16 +255,15 @@ LoadMRIPLocal <- function(filenames, vars) {
   }, names(filenames), filenames, MoreArgs = vars)
 }
 
-#this function elegantly handles sources from either local or online sources
+# this function elegantly handles sources from either local or online sources
 LoadMRIPFiles <- function(filenames, vars) {
-  Map(function(
-      x,
-      y,
-      in_dir,
-      state,
-      waves,
-      areas,
-      modes) {
+  Map(function(x,
+               y,
+               in_dir,
+               state,
+               waves,
+               areas,
+               modes) {
     print(x) # x <- names(filenames)
     print(y) # y <- filenames
 
@@ -405,8 +404,8 @@ Tau <- function(n, sum_catch, mean_catch, sd_catch) {
 
 Outlie <- function(base_catch, totcat_prelim, vars_of_interest, mergeby) {
   aggregated <- aggregate(base_catch[, vars_of_interest],
-                     by = lapply(mergeby, \(x) base_catch[, x]),
-                     FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
+    by = lapply(mergeby, \(x) base_catch[, x]),
+    FUN = \(x) c(mn = mean(x), n = length(x), sd = sd(x))
   )
   names(aggregated)[1:length(mergeby)] <- mergeby
   namefill <- (length(mergeby) + 1):(length(mergeby) + length(vars_of_interest))
