@@ -344,7 +344,8 @@ ReadCatch <- function(file, state, waves) {
       "[[:digit:]]",
       x
     ))
-  ))))[!num_vars %in% c("AREA_X_F", "SP_CODE")]
+  ))))
+  num_vars <- num_vars[!num_vars %in% c("AREA_X_F", "SP_CODE")]
   mrip_data[, num_vars] <- apply(
     mrip_data[, num_vars],
     2,
