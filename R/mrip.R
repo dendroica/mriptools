@@ -87,7 +87,7 @@ CompileMRIPData <- function(
 #' @examples
 #' OutlieMRIP(catch, effort, comparison_timepsan, prelim_yr, species)
 OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
-                       aggregate_factors = c("COMMON", "WAVE", "STATE")) {
+                       aggregate_factors = c("COMMON", "WAVE", "ST_F")) {
   base_catch <- catch[catch$YEAR %in% comparison_timespan, ]
   prelim_catch <- catch[catch$YEAR == prelim_yr, ] # year for comparison
   vars_of_interest <- c("TOT_CAT", "LANDING", "ESTREL")
@@ -98,7 +98,7 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
       \(x) prelim_catch[, x]
     ), sum
   )
-  names(prelim_catch2)[1:length(aggregate_factors)] <- aggregate_factors
+  names(prelim_catch)[1:length(aggregate_factors)] <- aggregate_factors
 
   # For looking for outliers by species across the modes and areas
   # to get wave level estimates by species for each year
@@ -119,7 +119,7 @@ OutlieMRIP <- function(catch, effort, comparison_timespan, prelim_yr, species,
   base_effort <- effort[effort$YEAR %in% comparison_timespan, ]
   effort_outlier <- Outlie(
     base_effort, prelim_effort, "ESTRIPS",
-    c("WAVE", "MODE_FX_F", "AREA_X_F", "STATE")
+    c("WAVE", "MODE_FX_F", "AREA_X_F", "ST_F")
   )
   outliers <- c(catch_outlier, effort_outlier)
   return(outliers)
@@ -162,10 +162,10 @@ AnalyzeMRIPOutliers <- function(comparison_timespan, prelim_yr, species, waves, 
     in_dir
   )
   outliers <- OutlieMRIP(
-    mrip_data[[1]], mrip_data[[2]], comparison_timespan, prelim_yr, species
+    catch = mrip_data[[1]], effort = mrip_data[[2]], comparison_timespan, prelim_yr, species
   )
   Write(outliers, out_dir)
-  Plot(mrip_data[[1]], mrip_data[[2]], species, waves, out_dir)
+  Plot(mrip_data[[1]], mrip_data[[2]], species, waves, outdir=out_dir)
 }
 
 MatchYrs <- function(filenames, time_pd) {
@@ -404,7 +404,7 @@ ReadMRIP <- function(filen, state, waves, areas, modes) {
 
 Tau <- function(n, sum_catch, mean_catch, sd_catch) {
   if (n > 2) {
-    t_critical <- qt(1 - 0.05 / (2 * n), aggregated = n - 2)
+    t_critical <- qt(1 - 0.05 / (2 * n), df = n - 2)
     tau <- (t_critical * (n - 1)) / (sqrt(n) * sqrt(n - 2 + t_critical^2))
     outlier <- abs(sum_catch - mean_catch) / sd_catch > tau
   } else {
