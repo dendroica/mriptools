@@ -28,20 +28,27 @@ CompileMRIPData <- function(
     state,
     in_dir = NULL) {
   time_pd <- c(comparison_timespan, prelim_yr)
-  vars <- list(
-    in_dir = in_dir,
-    state,
-    waves,
-    areas,
-    modes
-  )
   if (is.null(in_dir)) {
     in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
+    vars <- list(
+      in_dir = in_dir,
+      state,
+      waves,
+      areas,
+      modes
+    )
     filenames <- ListFromWeb(in_dir, time_pd, vars)
     mrip_data <- LoadMRIPFromWeb(filenames, vars)
   } else {
     filenames <- list.files(in_dir)
     filenames <- MatchYrs(filenames, time_pd)
+    vars <- list(
+      in_dir = in_dir,
+      state,
+      waves,
+      areas,
+      modes
+    )
     mrip_data <- LoadMRIPLocal(filenames, vars)
   }
   # function(x, y, src, state, species, waves, areas, modes)
@@ -189,7 +196,7 @@ LoadMRIPFromWeb <- function(filenames, vars) {
       waves,
       areas,
       modes) {
-    # print(filename) # filename <- names(filenames)
+     print(filename) # filename <- names(filenames)
     # print(yr) # yr <- filenames
     path <- file.path(in_dir, filename)
     if (tools::file_ext(filename) == "zip") {
@@ -230,7 +237,7 @@ LoadMRIPLocal <- function(filenames, vars) {
                waves,
                areas,
                modes) {
-    # print(x) # x <- names(filenames)
+     print(x) # x <- names(filenames)
     # print(y) # y <- filenames
 
     path <- file.path(in_dir, filename)
