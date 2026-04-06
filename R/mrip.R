@@ -29,7 +29,7 @@ CompileMRIPData <- function(
     in_dir = NULL) {
   time_pd <- c(comparison_timespan, prelim_yr)
   if (is.null(in_dir)) {
-    in_dir <- "https://www.st.nmfs.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads"
+    in_dir <- "https://apps-st.fisheries.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads/"
     vars <- list(
       in_dir = in_dir,
       state,
