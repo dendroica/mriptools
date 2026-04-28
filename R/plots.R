@@ -139,8 +139,8 @@ Plot <- function(catch, effort, species, waves,
       geom_errorbar(aes(ymin = LOWER_ESTRIPS, ymax = UPPER_ESTRIPS)) +
       labs(title = paste0("WAVE ", wavenum, " Estimated Angler Trips"), y = "Est. Angler Trips (numbers)") +
       facet_grid(vars(MODE_FX_F), vars(AREA_X_F), scales = "free_y") +
-      theme_bw() +
-      scale_x_discrete(guide = guide_axis(n.dodge = 2))
+      theme_bw() #+
+      #scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
   }
 
