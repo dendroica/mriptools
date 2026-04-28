@@ -1,5 +1,7 @@
 # R package: mriptools
-This is a draft library for MRIP data exploration, including outlier analysis. The data and variables used are here: https://apps-st.fisheries.noaa.gov/st1/recreational/MRIP_Estimate_Data/
+This is a draft library for MRIP data exploration, including outlier analysis. The data and variables used are here: https://apps-st.fisheries.noaa.gov/st1/recreational/MRIP_Estimate_Data/  
+
+The primary motivation for developing this R package was to identify outliers in TOT_CAT, LANDING and ESTREL for the preliminary wave data, in order to review estimates to provide feedback to NOAA.  
 
 ## Requirements  
 The following software/R libraries are required to install the package...  
