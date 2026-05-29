@@ -145,7 +145,7 @@ Plot <- function(catch, effort, species, waves,
       theme_bw() #+
       #scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
-    ggsave(file.path(outdir, s, "EstTrips.png"), p)
+    ggsave(file.path(outdir, "EstTrips.png"), p)
   }
 
   # Loops through each species and produces a graph for each wave
