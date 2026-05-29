@@ -36,8 +36,7 @@ Plot <- function(catch, effort, species, waves,
   combined_catch$WAVE <- as.factor(combined_catch$WAVE)
   combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
   combined_catch$AREA_X_F <- as.factor(combined_catch$AREA_X_F,
-                                       levels="INLAND",
-                                       "OCEAN (<= 3 MI)", "OCEAN (> 3 MI)")
+                                       levels=c("INLAND","OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"))
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
   # combined_catch <- combined_catch[!is.na(combined_catch$STATUS), ] #does this undo the purpose of doing the grid expand?
   ################## EFFORT
