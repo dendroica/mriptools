@@ -55,6 +55,7 @@ Plot <- function(catch, effort, species, waves,
       theme_bw() +
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
+    ggsave("Total Catch.png", p)
   }
 
   if ("TOT_CAT" %in% vars) {
@@ -82,6 +83,7 @@ Plot <- function(catch, effort, species, waves,
       theme_bw() +
       scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
+    ggsave("Landings.png", p)
   }
 
   if ("LANDING" %in% vars) {
@@ -111,6 +113,7 @@ Plot <- function(catch, effort, species, waves,
         theme_bw() +
         scale_x_discrete(guide = guide_axis(n.dodge = 2))
       print(p)
+      ggsave("Releases.png", p)
     }
   }
 
@@ -142,6 +145,7 @@ Plot <- function(catch, effort, species, waves,
       theme_bw() #+
       #scale_x_discrete(guide = guide_axis(n.dodge = 2))
     print(p)
+    ggsave("EstTrips.png", p)
   }
 
   # Loops through each species and produces a graph for each wave
