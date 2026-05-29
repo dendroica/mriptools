@@ -34,7 +34,7 @@ Plot <- function(catch, effort, species, waves,
   combined_catch <- combined_catch[combined_catch$COMMON %in% species, ]
   combined_catch$YEAR <- as.factor(combined_catch$YEAR)
   combined_catch$WAVE <- as.factor(combined_catch$WAVE)
-  combined_catch$MODE_FX_F <- as.factor(combined_catch$MODE_FX_F)
+  combined_catch$MODE_FX_F <- factor(combined_catch$MODE_FX_F, levels=c("SHORE", "PRIVATE/RENTAL BOAT", "PARTY BOAT", "CHARTER BOAT"))
   combined_catch$AREA_X_F <- factor(combined_catch$AREA_X_F,
                                        levels=c("INLAND","OCEAN (<= 3 MI)", "OCEAN (> 3 MI)"))
   combined_catch$COMMON <- as.factor(combined_catch$COMMON)
@@ -129,6 +129,7 @@ Plot <- function(catch, effort, species, waves,
   }
   # closes the PDF device
   # effort$YEAR <- as.factor(effort$YEAR)
+  effort$MODE_FX_F <- factor(effort$MODE_FX_F, levels=c("SHORE", "PRIVATE/RENTAL BOAT", "PARTY BOAT", "CHARTER BOAT"))
   effplot <- function(wavenum) {
     df <- effort[effort$WAVE == wavenum, ]
     # df$YEAR <- as.integer(df$YEAR)
