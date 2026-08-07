@@ -10,7 +10,7 @@ OutlieMRIP(
   comparison_timespan,
   prelim_yr,
   species,
-  aggregate_factors = c("COMMON", "WAVE")
+  aggregate_factors = c("COMMON", "WAVE", "ST_F")
 )
 }
 \arguments{

@@ -306,7 +306,18 @@ LoadMRIPFiles <- function(filenames, vars) {
 
 #' Reading catch MRIP data
 #'
-#' @noRd
+#' Creates output to help you identify outliers
+#' @param file Full path to file to read in (can be hyperlink)
+#' @param state Numeric state identifier
+#' @param waves The MRIP waves to include
+#' @return Catch data
+#' @export
+#' @examples
+#' CompileMRIPData(
+#'   file = file.path("https://apps-st.fisheries.noaa.gov/st1/recreational/MRIP_Estimate_Data/CSV/Wave%20Level%20Estimate%20Downloads", "mrip_catch_bywave_2025.csv"),
+#'   waves = c(2, 3, 4, 5, 6),
+#'   state = 24
+#' )
 ReadCatch <- function(file, state, waves) {
   mrip_data <- read.csv(file, colClasses = c("SP_CODE" = "character"))
   # readr::read_csv(filen,
